@@ -2,9 +2,9 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { fileURLToPath, URL } from 'node:url';
 
-// GitHub Pages project site is served under /Job-Tracker-UI/
+// GitHub Pages project site is served under /JobTracker/
 export default defineConfig({
-  base: '/Job-Tracker-UI/',
+  base: '/JobTracker/',
   plugins: [react()],
   resolve: {
     alias: {
