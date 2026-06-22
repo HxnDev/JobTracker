@@ -1,15 +1,11 @@
 import { useMemo, useState } from 'react';
-import { toast } from 'sonner';
-import { Loader2, Inbox, Plus } from 'lucide-react';
-import { Header } from '@/components/layout/Header';
+import { Loader2, Inbox, Plus, EyeOff, Eye } from 'lucide-react';
 import { SummaryBar } from '@/components/jobs/SummaryBar';
 import { JobFilters } from '@/components/jobs/JobFilters';
 import { JobTable } from '@/components/jobs/JobTable';
-import { JobFormDialog } from '@/components/jobs/JobFormDialog';
 import { Button } from '@/components/ui/button';
-import { useJobs } from '@/hooks/useJobs';
-import { getNextJobId, createEmptyJob } from '@/utils/jobs';
 import { parseSheetDate } from '@/utils/dates';
+import { cn } from '@/lib/utils';
 
 const INITIAL_FILTERS = { status: '', workMode: '', location: '' };
 
@@ -27,14 +23,11 @@ function compare(a, b, key) {
   });
 }
 
-export function Jobs({ onSignOut }) {
-  const { jobs, loading, saving, error, lastSync, refresh, saveJob } = useJobs(true);
-
+export function Jobs({ jobs, loading, error, onEdit, onAdd, onRetry }) {
   const [query, setQuery] = useState('');
   const [filters, setFilters] = useState(INITIAL_FILTERS);
   const [sort, setSort] = useState({ key: 'dateApplied', dir: 'desc' });
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [editing, setEditing] = useState(null);
+  const [showRejected, setShowRejected] = useState(true);
 
   const locations = useMemo(
     () =>
@@ -44,9 +37,18 @@ export function Jobs({ onSignOut }) {
     [jobs]
   );
 
+  const rejectedCount = useMemo(
+    () => jobs.filter((j) => j.status === 'Rejected').length,
+    [jobs]
+  );
+
   const visibleJobs = useMemo(() => {
     const q = query.trim().toLowerCase();
+    // Only hide rejected when the user isn't explicitly filtering for them.
+    const hideRejected = !showRejected && filters.status !== 'Rejected';
+
     const filtered = jobs.filter((job) => {
+      if (hideRejected && job.status === 'Rejected') return false;
       if (filters.status && job.status !== filters.status) return false;
       if (filters.workMode && job.workMode !== filters.workMode) return false;
       if (filters.location && job.location !== filters.location) return false;
@@ -57,11 +59,13 @@ export function Jobs({ onSignOut }) {
       }
       return true;
     });
+
     const sorted = [...filtered].sort((a, b) => compare(a, b, sort.key));
     return sort.dir === 'asc' ? sorted : sorted.reverse();
-  }, [jobs, query, filters, sort]);
+  }, [jobs, query, filters, sort, showRejected]);
 
-  const setFilter = (key, value) => setFilters((prev) => ({ ...prev, [key]: value }));
+  const setFilter = (key, value) =>
+    setFilters((prev) => ({ ...prev, [key]: value }));
 
   const clearFilters = () => {
     setQuery('');
@@ -75,109 +79,74 @@ export function Jobs({ onSignOut }) {
         : { key, dir: 'asc' }
     );
 
-  const openAdd = () => {
-    setEditing({ ...createEmptyJob(), jobId: getNextJobId(jobs), status: 'Applied' });
-    setDialogOpen(true);
-  };
-
-  const openEdit = (job) => {
-    setEditing(job);
-    setDialogOpen(true);
-  };
-
-  const handleSave = async (job) => {
-    const isEdit = Boolean(job.rowNumber);
-    try {
-      await saveJob(job);
-      toast.success(isEdit ? 'Application updated' : 'Application added', {
-        description: `${job.jobTitle} · ${job.company}`,
-      });
-    } catch (err) {
-      toast.error('Could not save to Google Sheets', {
-        description: err.message,
-      });
-      throw err;
-    }
-  };
-
-  const handleRefresh = async () => {
-    try {
-      await refresh();
-      toast.success('Synced with Google Sheets');
-    } catch (err) {
-      toast.error('Refresh failed', { description: err.message });
-    }
-  };
-
   return (
-    <div className="min-h-screen">
-      <Header
-        onAdd={openAdd}
-        onRefresh={handleRefresh}
-        onSignOut={onSignOut}
-        loading={loading}
-        lastSync={lastSync}
-      />
+    <div className="space-y-6">
+      <SummaryBar jobs={jobs} />
 
-      <main className="container space-y-6 py-6">
-        <SummaryBar jobs={jobs} />
+      <div className="space-y-4">
+        <JobFilters
+          query={query}
+          setQuery={setQuery}
+          filters={filters}
+          setFilter={setFilter}
+          locations={locations}
+          onClear={clearFilters}
+        />
 
-        <div className="space-y-4">
-          <JobFilters
-            query={query}
-            setQuery={setQuery}
-            filters={filters}
-            setFilter={setFilter}
-            locations={locations}
-            onClear={clearFilters}
-          />
-
-          <div className="flex items-center justify-between text-xs text-muted-foreground">
-            <span>
-              {visibleJobs.length} of {jobs.length} applications
-            </span>
-          </div>
-
-          {loading && jobs.length === 0 ? (
-            <div className="flex items-center justify-center gap-2 py-24 text-muted-foreground">
-              <Loader2 className="h-5 w-5 animate-spin" />
-              Loading your sheet…
-            </div>
-          ) : error && jobs.length === 0 ? (
-            <div className="glass flex flex-col items-center gap-3 rounded-2xl border border-destructive/30 py-20 text-center">
-              <p className="font-medium text-destructive">Couldn’t load the sheet</p>
-              <p className="max-w-md text-sm text-muted-foreground">{error}</p>
-              <Button variant="outline" onClick={handleRefresh}>
-                Try again
-              </Button>
-            </div>
-          ) : visibleJobs.length === 0 ? (
-            <div className="glass flex flex-col items-center gap-3 rounded-2xl border border-border/70 py-20 text-center">
-              <Inbox className="h-8 w-8 text-muted-foreground" />
-              <p className="font-medium">No applications match your filters</p>
-              <Button variant="outline" onClick={openAdd}>
-                <Plus className="h-4 w-4" />
-                Add your first job
-              </Button>
-            </div>
-          ) : (
-            <JobTable
-              jobs={visibleJobs}
-              sort={sort}
-              onSort={handleSort}
-              onEdit={openEdit}
-            />
+        <div className="flex items-center justify-between gap-3 text-xs text-muted-foreground">
+          <span>
+            {visibleJobs.length} of {jobs.length} applications
+          </span>
+          {rejectedCount > 0 && (
+            <button
+              type="button"
+              onClick={() => setShowRejected((v) => !v)}
+              className={cn(
+                'inline-flex items-center gap-1.5 rounded-lg border border-border/70 px-2.5 py-1 transition-colors hover:text-foreground',
+                showRejected && 'bg-secondary/40 text-foreground'
+              )}
+            >
+              {showRejected ? (
+                <Eye className="h-3.5 w-3.5" />
+              ) : (
+                <EyeOff className="h-3.5 w-3.5" />
+              )}
+              {showRejected ? 'Hide' : 'Show'} rejected ({rejectedCount})
+            </button>
           )}
         </div>
-      </main>
 
-      <JobFormDialog
-        open={dialogOpen}
-        onOpenChange={setDialogOpen}
-        job={editing}
-        onSave={handleSave}
-        saving={saving}
-      />
+        {loading && jobs.length === 0 ? (
+          <div className="flex items-center justify-center gap-2 py-24 text-muted-foreground">
+            <Loader2 className="h-5 w-5 animate-spin" />
+            Loading your sheet…
+          </div>
+        ) : error && jobs.length === 0 ? (
+          <div className="glass flex flex-col items-center gap-3 rounded-2xl border border-destructive/30 py-20 text-center">
+            <p className="font-medium text-destructive">Couldn’t load the sheet</p>
+            <p className="max-w-md text-sm text-muted-foreground">{error}</p>
+            <Button variant="outline" onClick={onRetry}>
+              Try again
+            </Button>
+          </div>
+        ) : visibleJobs.length === 0 ? (
+          <div className="glass flex flex-col items-center gap-3 rounded-2xl border border-border/70 py-20 text-center">
+            <Inbox className="h-8 w-8 text-muted-foreground" />
+            <p className="font-medium">No applications match your filters</p>
+            <Button variant="outline" onClick={onAdd}>
+              <Plus className="h-4 w-4" />
+              Add your first job
+            </Button>
+          </div>
+        ) : (
+          <JobTable
+            jobs={visibleJobs}
+            sort={sort}
+            onSort={handleSort}
+            onEdit={onEdit}
+          />
+        )}
+      </div>
     </div>
   );
 }

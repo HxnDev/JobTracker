@@ -84,7 +84,9 @@ export function JobTable({ jobs, sort, onSort, onEdit }) {
               </tr>
             </thead>
             <tbody>
-              {jobs.map((job) => (
+              {jobs.map((job) => {
+                const rejected = job.status === 'Rejected';
+                return (
                 <tr
                   key={job.rowNumber}
                   className="border-b border-border/40 transition-colors last:border-0 hover:bg-secondary/30"
@@ -96,11 +98,18 @@ export function JobTable({ jobs, sort, onSort, onEdit }) {
                     {formatDate(job.dateApplied) || '—'}
                   </td>
                   <td className="max-w-[260px] px-3 py-3">
-                    <span className="line-clamp-2 font-medium text-foreground">
+                    <span
+                      className={cn(
+                        'line-clamp-2 font-medium',
+                        rejected ? 'text-rose-400' : 'text-foreground'
+                      )}
+                    >
                       {job.jobTitle || '—'}
                     </span>
                   </td>
-                  <td className="px-3 py-3">{job.company || '—'}</td>
+                  <td className={cn('px-3 py-3', rejected && 'text-rose-400/90')}>
+                    {job.company || '—'}
+                  </td>
                   <td className="whitespace-nowrap px-3 py-3 text-muted-foreground">
                     {job.location || '—'}
                   </td>
@@ -128,7 +137,8 @@ export function JobTable({ jobs, sort, onSort, onEdit }) {
                     </Button>
                   </td>
                 </tr>
-              ))}
+                );
+              })}
             </tbody>
           </table>
         </div>
@@ -144,7 +154,12 @@ export function JobTable({ jobs, sort, onSort, onEdit }) {
           >
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
-                <p className="truncate font-semibold text-foreground">
+                <p
+                  className={cn(
+                    'truncate font-semibold',
+                    job.status === 'Rejected' ? 'text-rose-400' : 'text-foreground'
+                  )}
+                >
                   {job.jobTitle || '—'}
                 </p>
                 <p className="truncate text-sm text-muted-foreground">

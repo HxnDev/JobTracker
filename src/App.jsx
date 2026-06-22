@@ -2,7 +2,7 @@ import { Loader2 } from 'lucide-react';
 import { Toaster } from 'sonner';
 import AuroraBackground from '@/components/AuroraBackground';
 import { SignIn } from '@/components/SignIn';
-import { Jobs } from '@/pages/Jobs';
+import { AppShell } from '@/AppShell';
 import { useAuth } from '@/hooks/useAuth';
 
 export default function App() {
@@ -35,7 +35,7 @@ export default function App() {
         />
       )}
 
-      {status === 'signed_in' && <Jobs onSignOut={signOut} />}
+      {status === 'signed_in' && <AppShell onSignOut={signOut} />}
     </>
   );
 }

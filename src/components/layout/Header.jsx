@@ -1,4 +1,4 @@
-import { Briefcase, LogOut, Plus, RefreshCw } from 'lucide-react';
+import { Briefcase, LayoutDashboard, List, LogOut, Plus, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
@@ -12,10 +12,49 @@ function timeAgo(date) {
   return `${hrs}h ago`;
 }
 
-export function Header({ onAdd, onRefresh, onSignOut, loading, lastSync }) {
+const TABS = [
+  { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { id: 'applications', label: 'Applications', icon: List },
+];
+
+function NavTabs({ view, onViewChange }) {
+  return (
+    <nav className="flex items-center gap-1 rounded-xl border border-border/70 bg-secondary/30 p-1">
+      {TABS.map((tab) => {
+        const active = view === tab.id;
+        const Icon = tab.icon;
+        return (
+          <button
+            key={tab.id}
+            onClick={() => onViewChange(tab.id)}
+            className={cn(
+              'inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors',
+              active
+                ? 'bg-primary text-primary-foreground shadow'
+                : 'text-muted-foreground hover:text-foreground'
+            )}
+          >
+            <Icon className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">{tab.label}</span>
+          </button>
+        );
+      })}
+    </nav>
+  );
+}
+
+export function Header({
+  view,
+  onViewChange,
+  onAdd,
+  onRefresh,
+  onSignOut,
+  loading,
+  lastSync,
+}) {
   return (
     <header className="sticky top-0 z-30 border-b border-border/60 glass">
-      <div className="container flex h-16 items-center justify-between gap-4">
+      <div className="container flex h-16 items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/15 ring-1 ring-primary/30">
             <Briefcase className="h-4 w-4 text-primary" />
@@ -25,11 +64,12 @@ export function Header({ onAdd, onRefresh, onSignOut, loading, lastSync }) {
               Job Tracker
             </h1>
             <p className="hidden text-xs text-muted-foreground sm:block">
-              Switzerland · synced with Google Sheets
-              {lastSync ? ` · ${timeAgo(lastSync)}` : ''}
+              Switzerland{lastSync ? ` · synced ${timeAgo(lastSync)}` : ''}
             </p>
           </div>
         </div>
+
+        <NavTabs view={view} onViewChange={onViewChange} />
 
         <div className="flex items-center gap-2">
           <Button
@@ -40,11 +80,11 @@ export function Header({ onAdd, onRefresh, onSignOut, loading, lastSync }) {
             aria-label="Refresh"
           >
             <RefreshCw className={cn('h-4 w-4', loading && 'animate-spin')} />
-            <span className="hidden sm:inline">Refresh</span>
+            <span className="hidden lg:inline">Refresh</span>
           </Button>
           <Button size="sm" onClick={onAdd}>
             <Plus className="h-4 w-4" />
-            <span className="hidden sm:inline">Add job</span>
+            <span className="hidden lg:inline">Add job</span>
           </Button>
           <Button
             variant="ghost"

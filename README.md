@@ -86,8 +86,10 @@ publishes to GitHub Pages.
 
 ## Roadmap
 
-- **Phase 2:** full dashboard, Kanban with drag-drop, charts, auto-refresh,
-  conflict detection.
+- **Done:** Applications table (search / filter / sort, rejected hidden by default
+  with a toggle and red highlight) + a **Dashboard** with KPIs and charts
+  (applications over time, status breakdown, top locations, work mode, job sites).
+- **Next:** Kanban with drag-drop, auto-refresh, conflict detection.
 
 ## License
 
