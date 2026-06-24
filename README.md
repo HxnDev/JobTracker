@@ -6,7 +6,7 @@ beautifully, and writes changes straight back to it. No backend, no database, no
 server. Just a static React app on GitHub Pages talking directly to the Google
 Sheets API via browser OAuth.
 
-**Live:** https://hxndev.github.io/JobTracker/
+**Live:** https://jobs.hxndev.com
 
 ## Highlights
 
@@ -70,8 +70,8 @@ npm run dev            # http://localhost:5173
 4. **Credentials → Create credentials → OAuth client ID → Web application.**
    - Authorized JavaScript origins:
      - `http://localhost:5173`
-     - `https://hxndev.github.io`
-   - Copy the **Client ID** into `.env` (and as a repo Variable for CI).
+     - `https://jobs.hxndev.com`
+   - Copy the **Client ID** into `.env` (and as a deployment env var).
 
 ## Deployment
 
