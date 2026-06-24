@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "homepage": "https://hxndev.github.io/JobTracker/",
+  "homepage": "https://jobs.hxndev.com",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
