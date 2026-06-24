@@ -4,7 +4,7 @@ import { fileURLToPath, URL } from 'node:url';
 
 // GitHub Pages project site is served under /JobTracker/
 export default defineConfig({
-  base: '/JobTracker/',
+  base: '/',
   plugins: [react()],
   resolve: {
     alias: {
