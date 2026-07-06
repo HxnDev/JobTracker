@@ -13,3 +13,14 @@ npm-debug.log*
 .idea
 .vscode/*
 !.vscode/extensions.json
+
+# Expo / React Native
+.expo/
+expo-env.d.ts
+apps/mobile/android/
+apps/mobile/ios/
+*.apk
+*.aab
+
+# pnpm local store/index
+.pnpm-store/

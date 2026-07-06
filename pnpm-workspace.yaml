@@ -1,0 +1,13 @@
+packages:
+  - apps/*
+  - packages/*
+
+# pnpm 11 build-script approvals: true = run the build, false = explicitly
+# skip it (silences ERR_PNPM_IGNORED_BUILDS). dtrace-provider (optional dep of
+# eas-cli) works fine without its native build.
+allowBuilds:
+  esbuild: true
+  dtrace-provider: false
+
+# Never auto-purge/reinstall node_modules when running scripts.
+verifyDepsBeforeRun: false

@@ -1,0 +1,48 @@
+{
+  "expo": {
+    "name": "Job Tracker",
+    "slug": "jobtracker",
+    "owner": "hxndev",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#04090b",
+    "icon": "./assets/icon.png",
+    "scheme": [
+      "jobtracker",
+      "com.googleusercontent.apps.772121882720-nhtnqglb5t342g9la62k5vpve41jcbv4"
+    ],
+    "platforms": ["android"],
+    "android": {
+      "package": "com.hxndev.jobtracker",
+      "edgeToEdgeEnabled": true,
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#04090b"
+      }
+    },
+    "updates": {
+      "url": "https://u.expo.dev/e006a319-aaad-4aee-a50b-095ee8a1391a"
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/icon.png",
+          "imageWidth": 180,
+          "backgroundColor": "#04090b"
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "e006a319-aaad-4aee-a50b-095ee8a1391a"
+      }
+    }
+  }
+}

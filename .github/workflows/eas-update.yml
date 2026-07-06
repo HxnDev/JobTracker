@@ -1,0 +1,45 @@
+name: EAS Update (OTA)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/mobile/**'
+      - 'packages/shared/**'
+      - 'pnpm-lock.yaml'
+  workflow_dispatch:
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Uses the pnpm version pinned in package.json's "packageManager" field.
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Publish OTA update
+        working-directory: apps/mobile
+        env:
+          # Inner expo CLI rejects --non-interactive; CI=1 keeps it headless.
+          CI: '1'
+          # EXPO_PUBLIC_* vars are baked into the JS bundle at publish time.
+          EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID: ${{ vars.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID }}
+          COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
+        # Android only: web export would statically render in Node and crash
+        # on browser globals.
+        run: >
+          eas update --channel preview --platform android
+          --message "${COMMIT_MESSAGE:-Manual update}"
