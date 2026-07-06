@@ -4,12 +4,19 @@
     "appVersionSource": "local"
   },
   "build": {
+    "base": {
+      "env": {
+        "EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID": "772121882720-nhtnqglb5t342g9la62k5vpve41jcbv4.apps.googleusercontent.com"
+      }
+    },
     "development": {
+      "extends": "base",
       "developmentClient": true,
       "distribution": "internal",
       "channel": "development"
     },
     "preview": {
+      "extends": "base",
       "distribution": "internal",
       "channel": "preview",
       "android": {
@@ -17,6 +24,7 @@
       }
     },
     "production": {
+      "extends": "base",
       "channel": "production",
       "android": {
         "buildType": "app-bundle"
