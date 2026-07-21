@@ -8,6 +8,7 @@ import {
   getNextJobId,
   JOB_SITE_OPTIONS,
   LANGUAGE_OPTIONS,
+  LOCATION_SUGGESTIONS,
   parseSheetDate,
   STATUS_OPTIONS,
   WORK_MODE_OPTIONS,
@@ -189,6 +190,28 @@ export default function JobForm() {
                 placeholderTextColor={colors.textFaint}
                 style={styles.input}
               />
+              <View style={styles.pillWrap}>
+                {LOCATION_SUGGESTIONS.map((city) => {
+                  const active = form.location === city;
+                  return (
+                    <Pressable
+                      key={city}
+                      onPress={() => set('location')(city)}
+                      style={({ pressed }) => [
+                        styles.pill,
+                        active && styles.pillActive,
+                        pressed && { opacity: 0.7 },
+                      ]}
+                    >
+                      <Text
+                        style={[styles.pillLabel, active && styles.pillLabelActive]}
+                      >
+                        {city}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
             </Field>
           </View>
           <View style={styles.rowItem}>

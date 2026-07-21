@@ -40,6 +40,7 @@ export const STATUS_OPTIONS: string[];
 export const WORK_MODE_OPTIONS: string[];
 export const LANGUAGE_OPTIONS: string[];
 export const JOB_SITE_OPTIONS: string[];
+export const LOCATION_SUGGESTIONS: string[];
 export const WORK_MODE_ALIASES: Record<string, string>;
 export function normalizeWorkMode(raw: string | null | undefined): string;
 
