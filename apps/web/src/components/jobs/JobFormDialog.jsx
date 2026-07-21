@@ -23,6 +23,7 @@ import {
   WORK_MODE_OPTIONS,
   LANGUAGE_OPTIONS,
   JOB_SITE_OPTIONS,
+  LOCATION_SUGGESTIONS,
   createEmptyJob,
   toInputDate,
   fromInputDate,
@@ -137,10 +138,17 @@ export function JobFormDialog({ open, onOpenChange, job, onSave, saving }) {
             <div className="space-y-1.5">
               <Label>Location</Label>
               <Input
+                list="location-suggestions"
                 value={form.location}
                 onChange={setInput('location')}
                 placeholder="e.g. Geneva"
+                autoComplete="off"
               />
+              <datalist id="location-suggestions">
+                {LOCATION_SUGGESTIONS.map((city) => (
+                  <option key={city} value={city} />
+                ))}
+              </datalist>
             </div>
 
             <div className="space-y-1.5">

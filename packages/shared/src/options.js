@@ -22,6 +22,9 @@ export const JOB_SITE_OPTIONS = [
   'Other',
 ];
 
+/** Autocomplete suggestions for the location field (free text still allowed). */
+export const LOCATION_SUGGESTIONS = ['Lausanne', 'Geneva'];
+
 // Maps known messy values in the sheet to canonical display values.
 export const WORK_MODE_ALIASES = {
   hybird: 'Hybrid',

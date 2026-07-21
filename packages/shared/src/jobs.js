@@ -30,9 +30,9 @@ const EMPTY_JOB = {
   jobTitle: '',
   company: '',
   location: '',
-  language: '',
-  workMode: '',
-  jobSite: '',
+  language: 'English',
+  workMode: 'Hybrid',
+  jobSite: 'LinkedIn',
   status: '',
   jobUrl: '',
 };
