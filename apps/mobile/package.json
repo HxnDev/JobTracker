@@ -5,6 +5,7 @@
   "main": "expo-router/entry",
   "scripts": {
     "start": "expo start",
+    "start:dev": "APP_VARIANT=development expo start --dev-client",
     "android": "expo start --android",
     "build:dev": "eas build --profile development --platform android",
     "build:preview": "eas build --profile preview --platform android",
