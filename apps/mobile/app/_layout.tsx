@@ -10,6 +10,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { useOtaUpdates } from '@/hooks/useOtaUpdates';
 import { colors } from '@/lib/theme';
 
 const queryClient = new QueryClient({
@@ -19,6 +20,8 @@ const queryClient = new QueryClient({
 });
 
 export default function RootLayout() {
+  useOtaUpdates();
+
   const [fontsLoaded] = useFonts({
     Inter_400Regular,
     Inter_500Medium,

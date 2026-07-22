@@ -6,6 +6,10 @@
   "scripts": {
     "start": "expo start",
     "android": "expo start --android",
+    "build:dev": "eas build --profile development --platform android",
+    "build:preview": "eas build --profile preview --platform android",
+    "build:prod": "eas build --profile production --platform android",
+    "update:preview": "eas update --channel preview --platform android",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
