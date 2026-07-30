@@ -99,7 +99,7 @@ function redirectUri() {
 export async function signInAsync(): Promise<void> {
   if (!GOOGLE_ANDROID_CLIENT_ID) {
     throw new Error(
-      'Missing EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID — create apps/mobile/.env.'
+      'Missing Google Android client ID. Set EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID for local/OTA builds.'
     );
   }
 

@@ -37,10 +37,16 @@ jobs:
           # Inner expo CLI rejects --non-interactive; CI=1 keeps it headless.
           CI: '1'
           # EXPO_PUBLIC_* vars are baked into the JS bundle at publish time.
-          EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID: ${{ vars.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID }}
+          # Stored as a repo *secret* (not a variable) — vars.* resolves empty.
+          EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID: ${{ secrets.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID }}
           COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
         # Android only: web export would statically render in Node and crash
-        # on browser globals.
-        run: >
-          eas update --channel preview --platform android
-          --message "${COMMIT_MESSAGE:-Manual update}"
+        # on browser globals. Fail fast if the secret is missing so we never
+        # publish a bundle that wipes Google sign-in.
+        run: |
+          if [ -z "$EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID" ]; then
+            echo "::error::EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID secret is empty"
+            exit 1
+          fi
+          eas update --channel preview --platform android \
+            --message "${COMMIT_MESSAGE:-Manual update}"
