@@ -18,6 +18,7 @@ import { X } from 'lucide-react-native';
 import { useMemo, useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -29,7 +30,7 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useJobs, useSaveJob } from '@/hooks/useJobs';
+import { useDeleteJob, useJobs, useSaveJob } from '@/hooks/useJobs';
 import { colors, fonts, radius, sp } from '@/lib/theme';
 
 function Field({
@@ -88,6 +89,7 @@ export default function JobForm() {
   const params = useLocalSearchParams<{ row?: string }>();
   const { data } = useJobs(false);
   const save = useSaveJob();
+  const remove = useDeleteJob();
 
   const jobs = useMemo(() => data ?? [], [data]);
   const editing = useMemo(() => {
@@ -106,6 +108,7 @@ export default function JobForm() {
         }
   );
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const busy = save.isPending || remove.isPending;
 
   const set = (key: keyof Job) => (value: string) =>
     setForm((f) => ({ ...f, [key]: value }));
@@ -133,6 +136,35 @@ export default function JobForm() {
         ToastAndroid.LONG
       );
     }
+  };
+
+  const handleDelete = () => {
+    if (!editing) return;
+    Alert.alert(
+      'Delete application?',
+      `${form.jobId || 'This row'} will be removed from your Google Sheet. This cannot be undone.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await remove.mutateAsync(editing);
+              ToastAndroid.show('Application deleted', ToastAndroid.SHORT);
+              router.back();
+            } catch (err) {
+              ToastAndroid.show(
+                err instanceof Error
+                  ? err.message
+                  : 'Could not delete from Google Sheets',
+                ToastAndroid.LONG
+              );
+            }
+          },
+        },
+      ]
+    );
   };
 
   return (
@@ -274,21 +306,34 @@ export default function JobForm() {
       </ScrollView>
 
       <View style={[styles.footer, { paddingBottom: insets.bottom + sp(3) }]}>
+        {editing ? (
+          <Pressable
+            onPress={handleDelete}
+            disabled={busy}
+            style={({ pressed }) => [
+              styles.deleteBtn,
+              (pressed || busy) && { opacity: 0.7 },
+            ]}
+          >
+            <Text style={styles.deleteLabel}>Delete</Text>
+          </Pressable>
+        ) : null}
         <Pressable
           onPress={() => router.back()}
+          disabled={busy}
           style={({ pressed }) => [styles.cancelBtn, pressed && { opacity: 0.7 }]}
         >
           <Text style={styles.cancelLabel}>Cancel</Text>
         </Pressable>
         <Pressable
           onPress={handleSave}
-          disabled={save.isPending}
+          disabled={busy}
           style={({ pressed }) => [
             styles.saveBtn,
-            (pressed || save.isPending) && { opacity: 0.8 },
+            (pressed || busy) && { opacity: 0.8 },
           ]}
         >
-          {save.isPending ? (
+          {busy ? (
             <ActivityIndicator color={colors.onPrimary} size="small" />
           ) : (
             <Text style={styles.saveLabel}>
@@ -415,6 +460,21 @@ const styles = StyleSheet.create({
   },
   cancelLabel: {
     color: colors.textMuted,
+    fontFamily: fonts.medium,
+    fontSize: 14,
+  },
+  deleteBtn: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderColor: colors.danger,
+    borderWidth: 1,
+    borderRadius: radius.md,
+    backgroundColor: colors.dangerDim,
+    paddingHorizontal: sp(4),
+    minHeight: 48,
+  },
+  deleteLabel: {
+    color: colors.danger,
     fontFamily: fonts.medium,
     fontSize: 14,
   },

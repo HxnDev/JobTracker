@@ -125,6 +125,7 @@ export interface SheetsClient {
   fetchJobs(): Promise<Job[]>;
   addJob(job: Job): Promise<Job>;
   updateJob(job: Job): Promise<Job>;
+  deleteJob(job: Job): Promise<void>;
 }
 
 export function createSheetsClient(config: SheetsClientConfig): SheetsClient;

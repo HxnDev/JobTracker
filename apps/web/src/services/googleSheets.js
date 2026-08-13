@@ -11,4 +11,4 @@ const client = createSheetsClient({
   onUnauthorized: () => requestToken({ prompt: '' }),
 });
 
-export const { fetchJobs, addJob, updateJob } = client;
+export const { fetchJobs, addJob, updateJob, deleteJob } = client;

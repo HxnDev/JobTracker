@@ -119,5 +119,48 @@ export function createSheetsClient({
     return { ...job, rowNumber };
   }
 
-  return { fetchJobs, addJob, updateJob };
+  // Numeric sheet gid is required by batchUpdate; cache after first lookup.
+  let cachedSheetId = null;
+
+  async function getSheetId() {
+    if (cachedSheetId != null) return cachedSheetId;
+    const url = `${API}/${spreadsheetId}?fields=sheets.properties`;
+    const res = await apiFetch(url);
+    const match = (res.sheets || []).find(
+      (s) => s.properties?.title === sheetName
+    );
+    if (match?.properties?.sheetId == null) {
+      throw new Error(`Sheet "${sheetName}" not found in spreadsheet.`);
+    }
+    cachedSheetId = match.properties.sheetId;
+    return cachedSheetId;
+  }
+
+  // Physically removes the row so the sheet stays contiguous (getNextEmptyRow
+  // and later rowNumbers stay correct after a refetch).
+  async function deleteJob(job) {
+    if (!job?.rowNumber) {
+      throw new Error('Cannot delete a job without a row number.');
+    }
+    const sheetId = await getSheetId();
+    await apiFetch(`${API}/${spreadsheetId}:batchUpdate`, {
+      method: 'POST',
+      body: JSON.stringify({
+        requests: [
+          {
+            deleteDimension: {
+              range: {
+                sheetId,
+                dimension: 'ROWS',
+                startIndex: job.rowNumber - 1,
+                endIndex: job.rowNumber,
+              },
+            },
+          },
+        ],
+      }),
+    });
+  }
+
+  return { fetchJobs, addJob, updateJob, deleteJob };
 }

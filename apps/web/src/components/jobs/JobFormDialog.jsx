@@ -56,15 +56,17 @@ const FieldSelect = ({ label, value, onChange, options, placeholder }) => (
   </div>
 );
 
-export function JobFormDialog({ open, onOpenChange, job, onSave, saving }) {
+export function JobFormDialog({ open, onOpenChange, job, onSave, onDelete, saving }) {
   const isEdit = Boolean(job?.rowNumber);
   const [form, setForm] = useState(() => buildState(job));
   const [errors, setErrors] = useState({});
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   useEffect(() => {
     if (open) {
       setForm(buildState(job));
       setErrors({});
+      setConfirmDelete(false);
     }
   }, [open, job]);
 
@@ -89,6 +91,16 @@ export function JobFormDialog({ open, onOpenChange, job, onSave, saving }) {
 
     try {
       await onSave(payload);
+      onOpenChange(false);
+    } catch {
+      /* parent surfaces the error toast */
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!job?.rowNumber || !onDelete) return;
+    try {
+      await onDelete(job);
       onOpenChange(false);
     } catch {
       /* parent surfaces the error toast */
@@ -200,15 +212,62 @@ export function JobFormDialog({ open, onOpenChange, job, onSave, saving }) {
             </div>
           </div>
 
-          <DialogFooter className="mt-2">
-            <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
-              Cancel
-            </Button>
-            <Button type="submit" disabled={saving}>
-              {saving && <Loader2 className="animate-spin" />}
-              {isEdit ? 'Save changes' : 'Add application'}
-            </Button>
-          </DialogFooter>
+          {confirmDelete ? (
+            <div className="mt-2 space-y-3 rounded-xl border border-destructive/40 bg-destructive/10 p-3">
+              <p className="text-sm text-foreground">
+                Delete {form.jobId || 'this application'} from your Google Sheet? This
+                cannot be undone.
+              </p>
+              <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  disabled={saving}
+                  onClick={() => setConfirmDelete(false)}
+                >
+                  Keep it
+                </Button>
+                <Button
+                  type="button"
+                  variant="destructive"
+                  disabled={saving}
+                  onClick={handleDelete}
+                >
+                  {saving && <Loader2 className="animate-spin" />}
+                  Delete permanently
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <DialogFooter
+              className={
+                isEdit && onDelete
+                  ? 'mt-2 sm:justify-between'
+                  : 'mt-2'
+              }
+            >
+              {isEdit && onDelete ? (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                  disabled={saving}
+                  onClick={() => setConfirmDelete(true)}
+                >
+                  Delete
+                </Button>
+              ) : null}
+              <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+                <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={saving}>
+                  {saving && <Loader2 className="animate-spin" />}
+                  {isEdit ? 'Save changes' : 'Add application'}
+                </Button>
+              </div>
+            </DialogFooter>
+          )}
         </form>
       </DialogContent>
     </Dialog>

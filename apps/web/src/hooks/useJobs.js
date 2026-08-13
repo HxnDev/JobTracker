@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { fetchJobs, addJob, updateJob } from '@/services/googleSheets';
+import { fetchJobs, addJob, updateJob, deleteJob as deleteJobApi } from '@/services/googleSheets';
 
 export function useJobs(enabled) {
   const [jobs, setJobs] = useState([]);
@@ -47,5 +47,16 @@ export function useJobs(enabled) {
     }
   }, []);
 
-  return { jobs, loading, saving, error, lastSync, refresh: load, saveJob };
+  // Refetch after delete so remaining rowNumbers match the shifted sheet.
+  const deleteJob = useCallback(async (job) => {
+    setSaving(true);
+    try {
+      await deleteJobApi(job);
+      await load();
+    } finally {
+      setSaving(false);
+    }
+  }, [load]);
+
+  return { jobs, loading, saving, error, lastSync, refresh: load, saveJob, deleteJob };
 }

@@ -13,7 +13,8 @@ const Dashboard = lazy(() =>
 );
 
 export function AppShell({ onSignOut }) {
-  const { jobs, loading, saving, error, lastSync, refresh, saveJob } = useJobs(true);
+  const { jobs, loading, saving, error, lastSync, refresh, saveJob, deleteJob } =
+    useJobs(true);
 
   const [view, setView] = useState('dashboard');
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -42,6 +43,18 @@ export function AppShell({ onSignOut }) {
       });
     } catch (err) {
       toast.error('Could not save to Google Sheets', { description: err.message });
+      throw err;
+    }
+  };
+
+  const handleDelete = async (job) => {
+    try {
+      await deleteJob(job);
+      toast.success('Application deleted', {
+        description: `${job.jobTitle} · ${job.company}`,
+      });
+    } catch (err) {
+      toast.error('Could not delete from Google Sheets', { description: err.message });
       throw err;
     }
   };
@@ -96,6 +109,7 @@ export function AppShell({ onSignOut }) {
         onOpenChange={setDialogOpen}
         job={editing}
         onSave={handleSave}
+        onDelete={handleDelete}
         saving={saving}
       />
     </div>
