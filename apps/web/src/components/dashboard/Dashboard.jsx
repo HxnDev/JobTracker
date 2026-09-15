@@ -29,7 +29,6 @@ import {
 import {
   computeAnalytics,
   STATUS_COLORS,
-  LANGUAGE_COLORS,
 } from '@jobtracker/shared';
 
 const AXIS = { fill: 'hsl(164 9% 66%)', fontSize: 12 };
@@ -288,70 +287,8 @@ export function Dashboard({ jobs }) {
           )}
         </ChartCard>
 
-        <ChartCard title="Work mode" subtitle="Remote vs hybrid vs on-site">
-          {a.byWorkMode.length ? <MetricBars items={a.byWorkMode} /> : <EmptyChart />}
-        </ChartCard>
-
         <ChartCard title="Top job sites" subtitle="Where you find opportunities">
           {a.byJobSite.length ? <MetricBars items={a.byJobSite.slice(0, 6)} /> : <EmptyChart />}
-        </ChartCard>
-
-        <ChartCard
-          title="Application pipeline"
-          subtitle="From applied to offer"
-          className="lg:col-span-2"
-        >
-          <ResponsiveContainer width="100%" height={240}>
-            <BarChart data={a.funnel} layout="vertical" margin={{ left: 8, right: 24 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke={GRID} horizontal={false} />
-              <XAxis type="number" tick={AXIS} tickLine={false} axisLine={false} allowDecimals={false} />
-              <YAxis
-                type="category"
-                dataKey="stage"
-                tick={AXIS}
-                tickLine={false}
-                axisLine={false}
-                width={80}
-              />
-              <Tooltip contentStyle={tooltipStyle} cursor={{ fill: 'hsl(240 8% 16% / 0.4)' }} />
-              <Bar dataKey="value" radius={[0, 6, 6, 0]} maxBarSize={34}>
-                {a.funnel.map((entry, i) => (
-                  <Cell
-                    key={entry.stage}
-                    fill={['#75c9a4', '#5dbb92', '#47a97f', '#33926c'][i]}
-                  />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-        </ChartCard>
-
-        <ChartCard title="Language" subtitle="Role language">
-          <ResponsiveContainer width="100%" height={240}>
-            <PieChart>
-              <Pie
-                data={a.byLanguage}
-                dataKey="value"
-                nameKey="name"
-                cx="50%"
-                cy="50%"
-                innerRadius={50}
-                outerRadius={88}
-                paddingAngle={2}
-                stroke="none"
-                label={({ name, value }) => `${name}: ${value}`}
-                labelLine={false}
-              >
-                {a.byLanguage.map((entry) => (
-                  <Cell
-                    key={entry.name}
-                    fill={LANGUAGE_COLORS[entry.name] || LANGUAGE_COLORS.Unknown}
-                  />
-                ))}
-              </Pie>
-              <Tooltip contentStyle={tooltipStyle} />
-            </PieChart>
-          </ResponsiveContainer>
         </ChartCard>
 
         <ChartCard title="Quick facts" subtitle="At a glance">

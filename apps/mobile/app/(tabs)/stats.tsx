@@ -3,9 +3,7 @@
 
 import {
   computeAnalytics,
-  LANGUAGE_COLORS,
   STATUS_COLORS,
-  WORK_MODE_COLORS,
 } from '@jobtracker/shared';
 import {
   Activity,
@@ -34,8 +32,6 @@ import { ChartCard, Donut, HBars, Legend, VBars } from '@/components/charts';
 import { Screen } from '@/components/Screen';
 import { useJobs } from '@/hooks/useJobs';
 import { colors, fonts, radius, sp } from '@/lib/theme';
-
-const FUNNEL_COLORS = ['#75c9a4', '#60ba93', '#4ca680', '#398f6c'];
 
 interface IconProps {
   color: string;
@@ -106,15 +102,6 @@ export default function Stats() {
     ...s,
     color: STATUS_COLORS[s.name] ?? STATUS_COLORS.Unknown,
   }));
-  const workModeSegments = a.byWorkMode.map((s) => ({
-    ...s,
-    color: WORK_MODE_COLORS[s.name] ?? WORK_MODE_COLORS.Unknown,
-  }));
-  const languageSegments = a.byLanguage.map((s) => ({
-    ...s,
-    color: LANGUAGE_COLORS[s.name] ?? LANGUAGE_COLORS.Unknown,
-  }));
-
   return (
     <Screen>
       <View style={[styles.titleRow, { paddingTop: insets.top + sp(4) }]}>
@@ -216,13 +203,6 @@ export default function Stats() {
             />
           </ChartCard>
 
-          <ChartCard title="Work mode" subtitle="Remote vs hybrid vs on-site">
-            <View style={styles.donutWrap}>
-              <Donut segments={workModeSegments} size={130} strokeWidth={20} />
-            </View>
-            <Legend segments={workModeSegments} />
-          </ChartCard>
-
           <ChartCard title="By job site" subtitle="Where you find roles">
             <HBars
               data={a.byJobSite.slice(0, 6).map((s) => ({
@@ -231,23 +211,6 @@ export default function Stats() {
                 color: colors.primary,
               }))}
             />
-          </ChartCard>
-
-          <ChartCard title="Application pipeline" subtitle="From applied to offer">
-            <HBars
-              data={a.funnel.map((f, i) => ({
-                label: f.stage,
-                value: f.value,
-                color: FUNNEL_COLORS[i],
-              }))}
-            />
-          </ChartCard>
-
-          <ChartCard title="Language" subtitle="Role language">
-            <View style={styles.donutWrap}>
-              <Donut segments={languageSegments} size={130} strokeWidth={20} />
-            </View>
-            <Legend segments={languageSegments} />
           </ChartCard>
 
           <ChartCard title="Quick facts" subtitle="At a glance">
