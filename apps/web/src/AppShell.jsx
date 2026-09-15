@@ -111,6 +111,7 @@ export function AppShell({ onSignOut }) {
         onSave={handleSave}
         onDelete={handleDelete}
         saving={saving}
+        jobs={jobs}
       />
     </div>
   );

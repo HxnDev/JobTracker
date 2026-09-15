@@ -67,6 +67,12 @@ export function mapRowsToJobs(
 ): Job[];
 export function jobToEditableRow(job: Job): string[];
 export function getNextJobId(jobs: Job[]): string;
+export function buildJobSuggestions(
+  jobs: Job[],
+  key: 'jobTitle' | 'company' | 'location',
+  defaults?: string[]
+): string[];
+export function findDuplicateApplication(jobs: Job[], candidate: Job): Job | null;
 
 // ---------- analytics ----------
 export interface CountEntry {

@@ -105,3 +105,61 @@ export function getNextJobId(jobs) {
   const next = max + 1;
   return `CH-${String(next).padStart(3, '0')}`;
 }
+
+function normalized(value) {
+  return String(value || '')
+    .trim()
+    .toLocaleLowerCase()
+    .replace(/\s+/g, ' ');
+}
+
+/**
+ * Builds a case-insensitive directory from values already present in the sheet.
+ * Existing spelling/capitalisation is preserved and frequently used values rank first.
+ * @param {Job[]} jobs
+ * @param {'jobTitle'|'company'|'location'} key
+ * @param {string[]} [defaults]
+ */
+export function buildJobSuggestions(jobs, key, defaults = []) {
+  const values = new Map();
+  for (const value of [...defaults, ...jobs.map((job) => job[key])]) {
+    const clean = String(value || '').trim();
+    if (!clean) continue;
+    const id = normalized(clean);
+    const current = values.get(id);
+    values.set(id, {
+      value: current?.value || clean,
+      count: (current?.count || 0) + 1,
+    });
+  }
+  return [...values.values()]
+    .sort((a, b) => b.count - a.count || a.value.localeCompare(b.value))
+    .map((entry) => entry.value);
+}
+
+/**
+ * Finds an existing application before a new row is appended. A matching URL is
+ * definitive; otherwise title + company (+ location when both have one) must match.
+ * @param {Job[]} jobs
+ * @param {Job} candidate
+ * @returns {Job|null}
+ */
+export function findDuplicateApplication(jobs, candidate) {
+  const url = normalized(candidate.jobUrl).replace(/\/$/, '');
+  const title = normalized(candidate.jobTitle);
+  const company = normalized(candidate.company);
+  const location = normalized(candidate.location);
+
+  return (
+    jobs.find((job) => {
+      const existingUrl = normalized(job.jobUrl).replace(/\/$/, '');
+      if (url && existingUrl && url === existingUrl) return true;
+      if (!title || !company) return false;
+      if (title !== normalized(job.jobTitle) || company !== normalized(job.company)) {
+        return false;
+      }
+      const existingLocation = normalized(job.location);
+      return !location || !existingLocation || location === existingLocation;
+    }) || null
+  );
+}

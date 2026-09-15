@@ -4,6 +4,8 @@
 import type { Job } from '@jobtracker/shared';
 import {
   createEmptyJob,
+  buildJobSuggestions,
+  findDuplicateApplication,
   formatDate,
   getNextJobId,
   JOB_SITE_OPTIONS,
@@ -14,7 +16,7 @@ import {
   WORK_MODE_OPTIONS,
 } from '@jobtracker/shared';
 import { router, useLocalSearchParams } from 'expo-router';
-import { X } from 'lucide-react-native';
+import { Check, Search, X } from 'lucide-react-native';
 import { useMemo, useState } from 'react';
 import {
   ActivityIndicator,
@@ -48,6 +50,76 @@ function Field({
       {children}
       {error ? <Text style={styles.fieldError}>{error}</Text> : null}
     </View>
+  );
+}
+
+function SuggestionField({
+  label,
+  value,
+  suggestions,
+  placeholder,
+  error,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  suggestions: string[];
+  placeholder: string;
+  error?: string;
+  onChange: (value: string) => void;
+}) {
+  const [focused, setFocused] = useState(false);
+  const matches = useMemo(() => {
+    const query = value.trim().toLocaleLowerCase();
+    return suggestions
+      .filter((item) => !query || item.toLocaleLowerCase().includes(query))
+      .filter((item) => item.toLocaleLowerCase() !== query)
+      .slice(0, 5);
+  }, [suggestions, value]);
+
+  const choose = (item: string) => {
+    onChange(item);
+    setFocused(false);
+  };
+
+  return (
+    <Field label={label} error={error}>
+      <View style={styles.inputWrap}>
+        <TextInput
+          value={value}
+          onChangeText={onChange}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setTimeout(() => setFocused(false), 120)}
+          onSubmitEditing={() => matches[0] && choose(matches[0])}
+          placeholder={placeholder}
+          placeholderTextColor={colors.textFaint}
+          style={[styles.input, styles.inputWithIcon, error && styles.inputError]}
+          returnKeyType={matches.length ? 'next' : 'done'}
+        />
+        <Search color={colors.textFaint} size={16} style={styles.inputIcon} />
+      </View>
+      {focused && matches.length > 0 ? (
+        <View style={styles.suggestionMenu}>
+          <Text style={styles.suggestionHeading}>FROM YOUR APPLICATION HISTORY</Text>
+          {matches.map((item, index) => (
+            <Pressable
+              key={item}
+              onPress={() => choose(item)}
+              style={({ pressed }) => [
+                styles.suggestionRow,
+                index === 0 && styles.suggestionRowActive,
+                pressed && { opacity: 0.7 },
+              ]}
+            >
+              <Text style={[styles.suggestionText, index === 0 && styles.suggestionTextActive]} numberOfLines={1}>
+                {item}
+              </Text>
+              {index === 0 ? <Check color={colors.primary} size={15} /> : null}
+            </Pressable>
+          ))}
+        </View>
+      ) : null}
+    </Field>
   );
 }
 
@@ -109,11 +181,19 @@ export default function JobForm() {
   );
   const [errors, setErrors] = useState<Record<string, string>>({});
   const busy = save.isPending || remove.isPending;
+  const suggestions = useMemo(
+    () => ({
+      jobTitle: buildJobSuggestions(jobs, 'jobTitle'),
+      company: buildJobSuggestions(jobs, 'company'),
+      location: buildJobSuggestions(jobs, 'location', LOCATION_SUGGESTIONS),
+    }),
+    [jobs]
+  );
 
   const set = (key: keyof Job) => (value: string) =>
     setForm((f) => ({ ...f, [key]: value }));
 
-  const handleSave = async () => {
+  const handleSave = async (allowDuplicate = false) => {
     const nextErrors: Record<string, string> = {};
     if (!form.jobTitle.trim()) nextErrors.jobTitle = 'Required';
     if (!form.company.trim()) nextErrors.company = 'Required';
@@ -122,6 +202,21 @@ export default function JobForm() {
     }
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length) return;
+
+    if (!editing && !allowDuplicate) {
+      const duplicate = findDuplicateApplication(jobs, form);
+      if (duplicate) {
+        Alert.alert(
+          'Application already exists',
+          `${duplicate.jobId} was added on ${formatDate(duplicate.dateApplied)} for ${duplicate.jobTitle} at ${duplicate.company}.`,
+          [
+            { text: 'Review', style: 'cancel' },
+            { text: 'Add anyway', onPress: () => handleSave(true) },
+          ]
+        );
+        return;
+      }
+    }
 
     try {
       await save.mutateAsync(form);
@@ -192,73 +287,22 @@ export default function JobForm() {
         contentContainerStyle={styles.scroll}
         keyboardShouldPersistTaps="handled"
       >
-        <Field label="Job Title" error={errors.jobTitle}>
+        <SuggestionField label="Job Title" value={form.jobTitle} onChange={set('jobTitle')} suggestions={suggestions.jobTitle} placeholder="e.g. Senior Full Stack Developer" error={errors.jobTitle} />
+
+        <SuggestionField label="Company" value={form.company} onChange={set('company')} suggestions={suggestions.company} placeholder="e.g. Proton Mail" error={errors.company} />
+
+        <SuggestionField label="Location" value={form.location} onChange={set('location')} suggestions={suggestions.location} placeholder="e.g. Geneva" />
+
+        <Field label="Date Applied" error={errors.dateApplied}>
           <TextInput
-            value={form.jobTitle}
-            onChangeText={set('jobTitle')}
-            placeholder="e.g. Senior Full Stack Developer"
+            value={String(form.dateApplied)}
+            onChangeText={set('dateApplied')}
+            placeholder="dd.mm.yyyy"
             placeholderTextColor={colors.textFaint}
-            style={[styles.input, errors.jobTitle && styles.inputError]}
+            keyboardType="numbers-and-punctuation"
+            style={[styles.input, errors.dateApplied && styles.inputError]}
           />
         </Field>
-
-        <Field label="Company" error={errors.company}>
-          <TextInput
-            value={form.company}
-            onChangeText={set('company')}
-            placeholder="e.g. Proton Mail"
-            placeholderTextColor={colors.textFaint}
-            style={[styles.input, errors.company && styles.inputError]}
-          />
-        </Field>
-
-        <View style={styles.row}>
-          <View style={styles.rowItem}>
-            <Field label="Location">
-              <TextInput
-                value={form.location}
-                onChangeText={set('location')}
-                placeholder="e.g. Geneva"
-                placeholderTextColor={colors.textFaint}
-                style={styles.input}
-              />
-              <View style={styles.pillWrap}>
-                {LOCATION_SUGGESTIONS.map((city) => {
-                  const active = form.location === city;
-                  return (
-                    <Pressable
-                      key={city}
-                      onPress={() => set('location')(city)}
-                      style={({ pressed }) => [
-                        styles.pill,
-                        active && styles.pillActive,
-                        pressed && { opacity: 0.7 },
-                      ]}
-                    >
-                      <Text
-                        style={[styles.pillLabel, active && styles.pillLabelActive]}
-                      >
-                        {city}
-                      </Text>
-                    </Pressable>
-                  );
-                })}
-              </View>
-            </Field>
-          </View>
-          <View style={styles.rowItem}>
-            <Field label="Date Applied" error={errors.dateApplied}>
-              <TextInput
-                value={String(form.dateApplied)}
-                onChangeText={set('dateApplied')}
-                placeholder="dd.mm.yyyy"
-                placeholderTextColor={colors.textFaint}
-                keyboardType="numbers-and-punctuation"
-                style={[styles.input, errors.dateApplied && styles.inputError]}
-              />
-            </Field>
-          </View>
-        </View>
 
         <Field label="Status">
           <OptionPills
@@ -326,7 +370,7 @@ export default function JobForm() {
           <Text style={styles.cancelLabel}>Cancel</Text>
         </Pressable>
         <Pressable
-          onPress={handleSave}
+          onPress={() => handleSave()}
           disabled={busy}
           style={({ pressed }) => [
             styles.saveBtn,
@@ -408,6 +452,55 @@ const styles = StyleSheet.create({
   },
   inputError: {
     borderColor: colors.danger,
+  },
+  inputWrap: {
+    position: 'relative',
+  },
+  inputWithIcon: {
+    paddingRight: sp(10),
+  },
+  inputIcon: {
+    position: 'absolute',
+    right: sp(3),
+    top: 15,
+  },
+  suggestionMenu: {
+    marginTop: -sp(0.5),
+    backgroundColor: colors.cardSolid,
+    borderColor: colors.primaryBorder,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderRadius: radius.md,
+    padding: sp(1.5),
+  },
+  suggestionHeading: {
+    color: colors.textFaint,
+    fontFamily: fonts.semibold,
+    fontSize: 9,
+    letterSpacing: 1,
+    paddingHorizontal: sp(2),
+    paddingVertical: sp(1.5),
+  },
+  suggestionRow: {
+    minHeight: 40,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: sp(2),
+    borderRadius: radius.sm,
+    paddingHorizontal: sp(2.5),
+  },
+  suggestionRowActive: {
+    backgroundColor: colors.primaryDim,
+  },
+  suggestionText: {
+    flex: 1,
+    color: colors.text,
+    fontFamily: fonts.regular,
+    fontSize: 13,
+  },
+  suggestionTextActive: {
+    color: colors.primary,
+    fontFamily: fonts.medium,
   },
   row: {
     flexDirection: 'row',

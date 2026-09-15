@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { Loader2 } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { AlertTriangle, Check, Loader2, Search } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -24,10 +24,102 @@ import {
   LANGUAGE_OPTIONS,
   JOB_SITE_OPTIONS,
   LOCATION_SUGGESTIONS,
+  buildJobSuggestions,
   createEmptyJob,
+  findDuplicateApplication,
+  formatDate,
   toInputDate,
   fromInputDate,
 } from '@jobtracker/shared';
+
+function SuggestionInput({ label, field, value, onChange, suggestions, error, placeholder }) {
+  const [focused, setFocused] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const matches = useMemo(() => {
+    const query = value.trim().toLocaleLowerCase();
+    return suggestions
+      .filter((item) => !query || item.toLocaleLowerCase().includes(query))
+      .filter((item) => item.toLocaleLowerCase() !== query)
+      .slice(0, 6);
+  }, [suggestions, value]);
+  const open = focused && matches.length > 0;
+
+  const choose = (item) => {
+    onChange(item);
+    setFocused(false);
+    setActiveIndex(0);
+  };
+
+  const handleKeyDown = (event) => {
+    if (!open) return;
+    if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      setActiveIndex((index) => (index + 1) % matches.length);
+    } else if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      setActiveIndex((index) => (index - 1 + matches.length) % matches.length);
+    } else if (event.key === 'Enter') {
+      event.preventDefault();
+      choose(matches[activeIndex]);
+    } else if (event.key === 'Tab') {
+      onChange(matches[activeIndex]);
+    } else if (event.key === 'Escape') {
+      setFocused(false);
+    }
+  };
+
+  return (
+    <div className="relative space-y-1.5">
+      <Label htmlFor={`job-${field}`}>{label}</Label>
+      <div className="relative">
+        <Input
+          id={`job-${field}`}
+          value={value}
+          onChange={(event) => {
+            onChange(event.target.value);
+            setActiveIndex(0);
+          }}
+          onFocus={() => setFocused(true)}
+          onBlur={() => window.setTimeout(() => setFocused(false), 120)}
+          onKeyDown={handleKeyDown}
+          placeholder={placeholder}
+          autoComplete="off"
+          aria-invalid={Boolean(error)}
+          aria-autocomplete="list"
+          className="pr-9"
+        />
+        <Search className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+      </div>
+      {error && <p className="text-xs text-destructive">{error}</p>}
+      {open && (
+        <div className="absolute z-[70] mt-1 w-full overflow-hidden rounded-xl border border-border bg-popover/95 p-1.5 shadow-2xl backdrop-blur-xl">
+          <p className="px-2.5 py-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+            From your application history
+          </p>
+          {matches.map((item, index) => (
+            <button
+              key={item}
+              type="button"
+              onMouseDown={(event) => event.preventDefault()}
+              onClick={() => choose(item)}
+              className={`flex w-full items-center justify-between rounded-lg px-2.5 py-2 text-left text-sm transition-colors ${
+                index === activeIndex
+                  ? 'bg-primary/15 text-primary'
+                  : 'text-foreground hover:bg-secondary'
+              }`}
+            >
+              <span className="truncate">{item}</span>
+              {index === activeIndex && <Check className="h-3.5 w-3.5" />}
+            </button>
+          ))}
+          <p className="px-2.5 pb-1 pt-1.5 text-[10px] text-muted-foreground">
+            Use ↑↓ and Enter, or press Tab to accept
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
 
 function buildState(job) {
   const base = job || createEmptyJob();
@@ -56,21 +148,34 @@ const FieldSelect = ({ label, value, onChange, options, placeholder }) => (
   </div>
 );
 
-export function JobFormDialog({ open, onOpenChange, job, onSave, onDelete, saving }) {
+export function JobFormDialog({ open, onOpenChange, job, jobs, onSave, onDelete, saving }) {
   const isEdit = Boolean(job?.rowNumber);
   const [form, setForm] = useState(() => buildState(job));
   const [errors, setErrors] = useState({});
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [duplicate, setDuplicate] = useState(null);
+  const suggestions = useMemo(
+    () => ({
+      jobTitle: buildJobSuggestions(jobs, 'jobTitle'),
+      company: buildJobSuggestions(jobs, 'company'),
+      location: buildJobSuggestions(jobs, 'location', LOCATION_SUGGESTIONS),
+    }),
+    [jobs]
+  );
 
   useEffect(() => {
     if (open) {
       setForm(buildState(job));
       setErrors({});
       setConfirmDelete(false);
+      setDuplicate(null);
     }
   }, [open, job]);
 
-  const set = (key) => (value) => setForm((f) => ({ ...f, [key]: value }));
+  const set = (key) => (value) => {
+    setForm((f) => ({ ...f, [key]: value }));
+    setDuplicate(null);
+  };
   const setInput = (key) => (e) => set(key)(e.target.value);
 
   const handleSubmit = async (e) => {
@@ -88,6 +193,14 @@ export function JobFormDialog({ open, onOpenChange, job, onSave, onDelete, savin
       dateApplied: form.dateInput ? fromInputDate(form.dateInput) : form.dateApplied,
     };
     delete payload.dateInput;
+
+    if (!isEdit && !duplicate) {
+      const match = findDuplicateApplication(jobs, payload);
+      if (match) {
+        setDuplicate(match);
+        return;
+      }
+    }
 
     try {
       await onSave(payload);
@@ -121,47 +234,13 @@ export function JobFormDialog({ open, onOpenChange, job, onSave, onDelete, savin
 
         <form onSubmit={handleSubmit} className="grid gap-4">
           <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-1.5 sm:col-span-2">
-              <Label>Job Title</Label>
-              <Input
-                value={form.jobTitle}
-                onChange={setInput('jobTitle')}
-                placeholder="e.g. Senior Full Stack Developer"
-                aria-invalid={Boolean(errors.jobTitle)}
-              />
-              {errors.jobTitle && (
-                <p className="text-xs text-destructive">{errors.jobTitle}</p>
-              )}
+            <div className="sm:col-span-2">
+              <SuggestionInput label="Job Title" field="title" value={form.jobTitle} onChange={set('jobTitle')} suggestions={suggestions.jobTitle} error={errors.jobTitle} placeholder="e.g. Senior Full Stack Developer" />
             </div>
 
-            <div className="space-y-1.5">
-              <Label>Company</Label>
-              <Input
-                value={form.company}
-                onChange={setInput('company')}
-                placeholder="e.g. Proton Mail"
-                aria-invalid={Boolean(errors.company)}
-              />
-              {errors.company && (
-                <p className="text-xs text-destructive">{errors.company}</p>
-              )}
-            </div>
+            <SuggestionInput label="Company" field="company" value={form.company} onChange={set('company')} suggestions={suggestions.company} error={errors.company} placeholder="e.g. Proton Mail" />
 
-            <div className="space-y-1.5">
-              <Label>Location</Label>
-              <Input
-                list="location-suggestions"
-                value={form.location}
-                onChange={setInput('location')}
-                placeholder="e.g. Geneva"
-                autoComplete="off"
-              />
-              <datalist id="location-suggestions">
-                {LOCATION_SUGGESTIONS.map((city) => (
-                  <option key={city} value={city} />
-                ))}
-              </datalist>
-            </div>
+            <SuggestionInput label="Location" field="location" value={form.location} onChange={set('location')} suggestions={suggestions.location} placeholder="e.g. Geneva" />
 
             <div className="space-y-1.5">
               <Label>Date Applied</Label>
@@ -212,6 +291,20 @@ export function JobFormDialog({ open, onOpenChange, job, onSave, onDelete, savin
             </div>
           </div>
 
+          {duplicate && (
+            <div className="rounded-xl border border-amber-400/30 bg-amber-400/10 p-4">
+              <div className="flex gap-3">
+                <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-300" />
+                <div className="space-y-1">
+                  <p className="text-sm font-semibold text-amber-100">This application may already exist</p>
+                  <p className="text-xs leading-relaxed text-amber-100/70">
+                    {duplicate.jobId} was added on {formatDate(duplicate.dateApplied)} for {duplicate.jobTitle} at {duplicate.company}.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
           {confirmDelete ? (
             <div className="mt-2 space-y-3 rounded-xl border border-destructive/40 bg-destructive/10 p-3">
               <p className="text-sm text-foreground">
@@ -261,9 +354,12 @@ export function JobFormDialog({ open, onOpenChange, job, onSave, onDelete, savin
                 <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
                   Cancel
                 </Button>
-                <Button type="submit" disabled={saving}>
+                <Button
+                  type="submit"
+                  disabled={saving}
+                >
                   {saving && <Loader2 className="animate-spin" />}
-                  {isEdit ? 'Save changes' : 'Add application'}
+                  {isEdit ? 'Save changes' : duplicate ? 'Add anyway' : 'Add application'}
                 </Button>
               </div>
             </DialogFooter>
