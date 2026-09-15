@@ -47,6 +47,7 @@ export function JobTable({ jobs, sort, onSort, onEdit, viewMode = 'list' }) {
           'overflow-hidden rounded-2xl border border-border/70 glass',
           viewMode === 'list' ? 'hidden md:block' : 'hidden'
         )}
+      >
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="border-b border-border/70 bg-secondary/30 text-xs uppercase tracking-wide">
@@ -154,6 +155,7 @@ export function JobTable({ jobs, sort, onSort, onEdit, viewMode = 'list' }) {
           'grid gap-3',
           viewMode === 'grid' ? 'md:grid-cols-2 xl:grid-cols-3' : 'md:hidden'
         )}
+      >
         {jobs.map((job) => (
           <button
             key={job.rowNumber}
