@@ -30,7 +30,7 @@ function NavTabs({ view, onViewChange }) {
             className={cn(
               'inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors',
               active
-                ? 'bg-primary text-primary-foreground shadow'
+                ? 'bg-primary/15 text-foreground shadow-inner ring-1 ring-primary/25'
                 : 'text-muted-foreground hover:text-foreground'
             )}
           >
@@ -53,11 +53,11 @@ export function Header({
   lastSync,
 }) {
   return (
-    <header className="sticky top-0 z-30 border-b border-border/60 glass">
-      <div className="container flex h-16 items-center justify-between gap-3">
+    <header className="sticky top-0 z-30 border-b border-border/70 bg-background/85 backdrop-blur-xl">
+      <div className="container flex h-20 max-w-[1560px] items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/15 ring-1 ring-primary/30">
-            <Briefcase className="h-4 w-4 text-primary" />
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 ring-1 ring-primary/30">
+            <Briefcase className="h-5 w-5 text-primary" />
           </div>
           <div className="leading-tight">
             <h1 className="text-sm font-semibold tracking-tight sm:text-base">

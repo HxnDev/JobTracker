@@ -40,10 +40,10 @@ export function SummaryBar({ jobs }: { jobs: Job[] }) {
       contentContainerStyle={styles.row}
     >
       <Stat label="Total" value={stats.total} color={colors.text} />
-      <Stat label="Applied" value={stats.applied} color="#38bdf8" />
-      <Stat label="In process" value={stats.inProcess} color="#a78bfa" />
-      <Stat label="Rejected" value={stats.closed} color="#fb7185" />
-      <Stat label="This week" value={stats.thisWeek} color="#34d399" />
+      <Stat label="Applied" value={stats.applied} color={colors.primary} />
+      <Stat label="In process" value={stats.inProcess} color="#f5bf4f" />
+      <Stat label="Rejected" value={stats.closed} color="#ef6767" />
+      <Stat label="This week" value={stats.thisWeek} color="#75c9a4" />
     </ScrollView>
   );
 }

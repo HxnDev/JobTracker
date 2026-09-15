@@ -150,24 +150,24 @@ export function computeAnalytics(jobs) {
 
 // Chart/badge colors (hex, platform-agnostic — usable in web CSS and RN).
 export const STATUS_COLORS = {
-  Applied: '#38bdf8',
-  Screening: '#fbbf24',
-  Interview: '#a78bfa',
-  Offer: '#34d399',
-  Rejected: '#fb7185',
+  Applied: '#75c9a4',
+  Screening: '#f5bf4f',
+  Interview: '#67aee8',
+  Offer: '#b985e8',
+  Rejected: '#ef6767',
   Ghosted: '#a1a1aa',
   Unknown: '#71717a',
 };
 
 export const WORK_MODE_COLORS = {
-  Remote: '#34d399',
-  Hybrid: '#818cf8',
+  Remote: '#62c99a',
+  Hybrid: '#8fa6c9',
   'On-Site': '#fb923c',
   Unknown: '#71717a',
 };
 
 export const LANGUAGE_COLORS = {
-  English: '#38bdf8',
+  English: '#75c9a4',
   French: '#f472b6',
   German: '#facc15',
   Italian: '#4ade80',

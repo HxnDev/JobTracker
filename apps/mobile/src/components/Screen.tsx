@@ -10,11 +10,11 @@ export function Screen({ children }: PropsWithChildren) {
   return (
     <View style={styles.root}>
       <LinearGradient
-        colors={['rgba(45, 212, 191, 0.14)', 'rgba(45, 212, 191, 0)']}
+        colors={['rgba(117, 201, 164, 0.14)', 'rgba(117, 201, 164, 0)']}
         style={[styles.glow, styles.glowTeal]}
       />
       <LinearGradient
-        colors={['rgba(167, 139, 250, 0.10)', 'rgba(167, 139, 250, 0)']}
+        colors={['rgba(67, 133, 104, 0.10)', 'rgba(67, 133, 104, 0)']}
         style={[styles.glow, styles.glowViolet]}
       />
       {children}

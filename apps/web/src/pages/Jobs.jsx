@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Loader2, Inbox, Plus, EyeOff, Eye } from 'lucide-react';
+import { Loader2, Inbox, Plus, EyeOff, Eye, Grid2X2, List } from 'lucide-react';
 import { SummaryBar } from '@/components/jobs/SummaryBar';
 import { JobFilters } from '@/components/jobs/JobFilters';
 import { JobTable } from '@/components/jobs/JobTable';
@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { parseSheetDate } from '@jobtracker/shared';
 import { cn } from '@/lib/utils';
 
-const INITIAL_FILTERS = { status: '', workMode: '', location: '' };
+const INITIAL_FILTERS = { status: '', workMode: '', location: '', jobSite: '' };
 
 function compare(a, b, key) {
   if (key === 'dateApplied') {
@@ -28,10 +28,18 @@ export function Jobs({ jobs, loading, error, onEdit, onAdd, onRetry }) {
   const [filters, setFilters] = useState(INITIAL_FILTERS);
   const [sort, setSort] = useState({ key: 'dateApplied', dir: 'desc' });
   const [showRejected, setShowRejected] = useState(true);
+  const [viewMode, setViewMode] = useState('list');
 
   const locations = useMemo(
     () =>
       [...new Set(jobs.map((j) => j.location).filter(Boolean))].sort((a, b) =>
+        a.localeCompare(b)
+      ),
+    [jobs]
+  );
+  const jobSites = useMemo(
+    () =>
+      [...new Set(jobs.map((j) => j.jobSite).filter(Boolean))].sort((a, b) =>
         a.localeCompare(b)
       ),
     [jobs]
@@ -52,6 +60,7 @@ export function Jobs({ jobs, loading, error, onEdit, onAdd, onRetry }) {
       if (filters.status && job.status !== filters.status) return false;
       if (filters.workMode && job.workMode !== filters.workMode) return false;
       if (filters.location && job.location !== filters.location) return false;
+      if (filters.jobSite && job.jobSite !== filters.jobSite) return false;
       if (q) {
         const hay =
           `${job.jobTitle} ${job.company} ${job.location} ${job.jobId}`.toLowerCase();
@@ -81,6 +90,10 @@ export function Jobs({ jobs, loading, error, onEdit, onAdd, onRetry }) {
 
   return (
     <div className="space-y-6">
+      <div>
+        <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">Applications</h2>
+        <p className="mt-1 text-sm text-muted-foreground">Track, manage and never miss an opportunity.</p>
+      </div>
       <SummaryBar jobs={jobs} />
 
       <div className="space-y-4">
@@ -90,30 +103,67 @@ export function Jobs({ jobs, loading, error, onEdit, onAdd, onRetry }) {
           filters={filters}
           setFilter={setFilter}
           locations={locations}
+          jobSites={jobSites}
           onClear={clearFilters}
         />
 
-        <div className="flex items-center justify-between gap-3 text-xs text-muted-foreground">
+        <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-muted-foreground">
           <span>
             {visibleJobs.length} of {jobs.length} applications
           </span>
-          {rejectedCount > 0 && (
-            <button
-              type="button"
-              onClick={() => setShowRejected((v) => !v)}
-              className={cn(
-                'inline-flex items-center gap-1.5 rounded-lg border border-border/70 px-2.5 py-1 transition-colors hover:text-foreground',
-                showRejected && 'bg-secondary/40 text-foreground'
-              )}
-            >
-              {showRejected ? (
-                <Eye className="h-3.5 w-3.5" />
-              ) : (
-                <EyeOff className="h-3.5 w-3.5" />
-              )}
-              {showRejected ? 'Hide' : 'Show'} rejected ({rejectedCount})
-            </button>
-          )}
+          <div className="flex flex-wrap items-center gap-2">
+            {rejectedCount > 0 && (
+              <button
+                type="button"
+                onClick={() => setShowRejected((v) => !v)}
+                className={cn(
+                  'inline-flex items-center gap-1.5 rounded-lg border border-border/70 px-2.5 py-1 transition-colors hover:text-foreground',
+                  showRejected && 'bg-secondary/40 text-foreground'
+                )}
+              >
+                {showRejected ? (
+                  <Eye className="h-3.5 w-3.5" />
+                ) : (
+                  <EyeOff className="h-3.5 w-3.5" />
+                )}
+                {showRejected ? 'Hide' : 'Show'} rejected ({rejectedCount})
+              </button>
+            )}
+            <label className="ml-1 hidden items-center gap-2 sm:flex">
+              <span>Sort by</span>
+              <select
+                value={`${sort.key}:${sort.dir}`}
+                onChange={(event) => {
+                  const [key, dir] = event.target.value.split(':');
+                  setSort({ key, dir });
+                }}
+                className="h-9 rounded-lg border border-border bg-card px-3 text-xs text-foreground outline-none focus:ring-2 focus:ring-ring"
+              >
+                <option value="dateApplied:desc">Date (newest)</option>
+                <option value="dateApplied:asc">Date (oldest)</option>
+                <option value="jobTitle:asc">Job title</option>
+                <option value="company:asc">Company</option>
+              </select>
+            </label>
+            <div className="hidden items-center rounded-lg border border-border bg-card p-0.5 md:flex">
+              <button
+                type="button"
+                onClick={() => setViewMode('list')}
+                className={cn('rounded-md p-2 transition-colors', viewMode === 'list' ? 'bg-primary/15 text-primary' : 'hover:text-foreground')}
+                aria-label="List view"
+              >
+                <List className="h-4 w-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewMode('grid')}
+                className={cn('rounded-md p-2 transition-colors', viewMode === 'grid' ? 'bg-primary/15 text-primary' : 'hover:text-foreground')}
+                aria-label="Grid view"
+              >
+                <Grid2X2 className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
         </div>
 
         {loading && jobs.length === 0 ? (
@@ -144,6 +194,7 @@ export function Jobs({ jobs, loading, error, onEdit, onAdd, onRetry }) {
             sort={sort}
             onSort={handleSort}
             onEdit={onEdit}
+            viewMode={viewMode}
           />
         )}
       </div>

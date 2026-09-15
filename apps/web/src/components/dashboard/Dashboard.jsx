@@ -18,31 +18,29 @@ import {
   Briefcase,
   MessageSquareReply,
   CalendarClock,
-  TrendingUp,
   Timer,
   MapPin,
   Building2,
   Flame,
   Hourglass,
   Activity,
-  Award,
+  CircleX,
 } from 'lucide-react';
 import {
   computeAnalytics,
   STATUS_COLORS,
-  WORK_MODE_COLORS,
   LANGUAGE_COLORS,
 } from '@jobtracker/shared';
 
-const AXIS = { fill: 'hsl(240 8% 62%)', fontSize: 12 };
-const GRID = 'hsl(240 8% 18%)';
+const AXIS = { fill: 'hsl(164 9% 66%)', fontSize: 12 };
+const GRID = 'hsl(169 16% 16%)';
 
 const tooltipStyle = {
-  background: 'hsl(240 12% 8%)',
-  border: '1px solid hsl(240 8% 18%)',
+  background: 'hsl(174 18% 7%)',
+  border: '1px solid hsl(169 16% 18%)',
   borderRadius: 12,
   fontSize: 12,
-  color: 'hsl(220 20% 96%)',
+  color: 'hsl(156 22% 96%)',
 };
 
 function KpiCard({ icon: Icon, label, value, sub, accent }) {
@@ -100,6 +98,26 @@ function EmptyChart() {
   );
 }
 
+function MetricBars({ items }) {
+  const max = Math.max(...items.map((item) => item.value), 1);
+  return (
+    <div className="space-y-4 py-2">
+      {items.map((item) => (
+        <div key={item.name} className="grid grid-cols-[88px_1fr_36px] items-center gap-3 text-sm">
+          <span className="truncate text-muted-foreground">{item.name}</span>
+          <span className="h-3 overflow-hidden rounded-full bg-secondary">
+            <span
+              className="block h-full rounded-full bg-gradient-to-r from-primary/75 to-primary"
+              style={{ width: `${Math.max((item.value / max) * 100, 3)}%` }}
+            />
+          </span>
+          <span className="text-right font-medium tabular-nums">{item.value}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export function Dashboard({ jobs }) {
   const a = useMemo(() => computeAnalytics(jobs), [jobs]);
 
@@ -121,49 +139,49 @@ export function Dashboard({ jobs }) {
       transition={{ duration: 0.4 }}
       className="space-y-5"
     >
+      <div>
+        <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">Good morning, Hassan 👋</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          {a.total} applications · Keep going. The right opportunity is out there.
+        </p>
+      </div>
+
       {/* KPI row */}
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-5">
         <KpiCard
           icon={Briefcase}
           label="Total"
           value={a.total}
           sub={`${a.applied} awaiting reply`}
-          accent="bg-primary/15 text-primary ring-1 ring-primary/30"
+          accent="bg-primary/10 text-primary ring-1 ring-primary/20"
         />
         <KpiCard
           icon={MessageSquareReply}
-          label="Response rate"
-          value={`${a.responseRate}%`}
-          sub={`${a.rejected} rejected`}
-          accent="bg-sky-500/15 text-sky-300 ring-1 ring-sky-500/30"
+          label="Applied"
+          value={a.applied}
+          sub={`${a.total ? Math.round((a.applied / a.total) * 100) : 0}% of total`}
+          accent="bg-primary/10 text-primary ring-1 ring-primary/20"
         />
         <KpiCard
-          icon={TrendingUp}
-          label="Interview rate"
-          value={`${a.interviewRate}%`}
-          sub={`${a.inProcess} in process`}
-          accent="bg-violet-500/15 text-violet-300 ring-1 ring-violet-500/30"
+          icon={Timer}
+          label="In process"
+          value={a.inProcess}
+          sub={`${a.total ? Math.round((a.inProcess / a.total) * 100) : 0}% of total`}
+          accent="bg-amber-500/10 text-amber-300 ring-1 ring-amber-500/20"
         />
         <KpiCard
-          icon={Award}
-          label="Offers"
-          value={a.offers}
-          sub={`${a.facts.activeShare}% still active`}
-          accent="bg-fuchsia-500/15 text-fuchsia-300 ring-1 ring-fuchsia-500/30"
+          icon={CircleX}
+          label="Rejected"
+          value={a.rejected}
+          sub={`${a.total ? Math.round((a.rejected / a.total) * 100) : 0}% of total`}
+          accent="bg-rose-500/10 text-rose-300 ring-1 ring-rose-500/20"
         />
         <KpiCard
           icon={CalendarClock}
           label="This week"
           value={a.thisWeek}
           sub="applied in last 7 days"
-          accent="bg-emerald-500/15 text-emerald-300 ring-1 ring-emerald-500/30"
-        />
-        <KpiCard
-          icon={Timer}
-          label="Avg age"
-          value={`${a.avgDays}d`}
-          sub="since applying"
-          accent="bg-amber-500/15 text-amber-300 ring-1 ring-amber-500/30"
+          accent="bg-emerald-500/10 text-emerald-300 ring-1 ring-emerald-500/20"
         />
       </div>
 
@@ -182,12 +200,12 @@ export function Dashboard({ jobs }) {
                 <YAxis tick={AXIS} tickLine={false} axisLine={false} allowDecimals={false} />
                 <Tooltip
                   contentStyle={tooltipStyle}
-                  cursor={{ fill: 'hsl(240 8% 16% / 0.4)' }}
+                  cursor={{ fill: 'hsl(169 16% 16% / 0.4)' }}
                 />
                 <Bar
                   dataKey="count"
                   name="Applied"
-                  fill="hsl(245 80% 66%)"
+                  fill="hsl(153 45% 59%)"
                   radius={[6, 6, 0, 0]}
                   maxBarSize={36}
                 />
@@ -195,7 +213,7 @@ export function Dashboard({ jobs }) {
                   type="monotone"
                   dataKey="cumulative"
                   name="Cumulative"
-                  stroke="hsl(158 64% 52%)"
+                  stroke="hsl(153 60% 69%)"
                   strokeWidth={2.5}
                   dot={false}
                 />
@@ -262,7 +280,7 @@ export function Dashboard({ jobs }) {
                   width={90}
                 />
                 <Tooltip contentStyle={tooltipStyle} cursor={{ fill: 'hsl(240 8% 16% / 0.4)' }} />
-                <Bar dataKey="value" fill="hsl(199 89% 60%)" radius={[0, 6, 6, 0]} maxBarSize={22} />
+                <Bar dataKey="value" fill="hsl(153 45% 59%)" radius={[0, 6, 6, 0]} maxBarSize={22} />
               </BarChart>
             </ResponsiveContainer>
           ) : (
@@ -271,46 +289,11 @@ export function Dashboard({ jobs }) {
         </ChartCard>
 
         <ChartCard title="Work mode" subtitle="Remote vs hybrid vs on-site">
-          <ResponsiveContainer width="100%" height={260}>
-            <PieChart>
-              <Pie
-                data={a.byWorkMode}
-                dataKey="value"
-                nameKey="name"
-                cx="50%"
-                cy="50%"
-                outerRadius={92}
-                paddingAngle={2}
-                stroke="none"
-                label={({ name, value }) => `${name}: ${value}`}
-                labelLine={false}
-              >
-                {a.byWorkMode.map((entry) => (
-                  <Cell
-                    key={entry.name}
-                    fill={WORK_MODE_COLORS[entry.name] || WORK_MODE_COLORS.Unknown}
-                  />
-                ))}
-              </Pie>
-              <Tooltip contentStyle={tooltipStyle} />
-            </PieChart>
-          </ResponsiveContainer>
+          {a.byWorkMode.length ? <MetricBars items={a.byWorkMode} /> : <EmptyChart />}
         </ChartCard>
 
-        <ChartCard title="By job site" subtitle="Where you find roles">
-          {a.byJobSite.length ? (
-            <ResponsiveContainer width="100%" height={260}>
-              <BarChart data={a.byJobSite} margin={{ top: 8, left: -12, right: 8 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke={GRID} vertical={false} />
-                <XAxis dataKey="name" tick={AXIS} tickLine={false} axisLine={false} />
-                <YAxis tick={AXIS} tickLine={false} axisLine={false} allowDecimals={false} />
-                <Tooltip contentStyle={tooltipStyle} cursor={{ fill: 'hsl(240 8% 16% / 0.4)' }} />
-                <Bar dataKey="value" fill="hsl(258 90% 70%)" radius={[6, 6, 0, 0]} maxBarSize={48} />
-              </BarChart>
-            </ResponsiveContainer>
-          ) : (
-            <EmptyChart />
-          )}
+        <ChartCard title="Top job sites" subtitle="Where you find opportunities">
+          {a.byJobSite.length ? <MetricBars items={a.byJobSite.slice(0, 6)} /> : <EmptyChart />}
         </ChartCard>
 
         <ChartCard
@@ -335,7 +318,7 @@ export function Dashboard({ jobs }) {
                 {a.funnel.map((entry, i) => (
                   <Cell
                     key={entry.stage}
-                    fill={['#6366f1', '#38bdf8', '#a78bfa', '#34d399'][i]}
+                    fill={['#75c9a4', '#5dbb92', '#47a97f', '#33926c'][i]}
                   />
                 ))}
               </Bar>

@@ -1,34 +1,33 @@
 // Job Tracker mobile theme — same design language as the web app (near-black,
-// glassy cards, soft glows) but its own identity: deep cyan-teal primary with
-// a violet accent (the web app is indigo/emerald).
+// glassy cards and soft green glows shared with the desktop redesign.
 
 import { STATUS_COLORS, WORK_MODE_COLORS } from '@jobtracker/shared';
 
 export const colors = {
-  background: '#04090b',
-  backgroundAlt: '#071114',
+  background: '#07100f',
+  backgroundAlt: '#091412',
 
-  card: 'rgba(11, 21, 25, 0.72)',
-  cardSolid: '#0b1519',
-  cardBorder: '#14262c',
+  card: 'rgba(14, 27, 24, 0.82)',
+  cardSolid: '#0e1b18',
+  cardBorder: '#1d322d',
 
-  primary: '#2dd4bf',
-  primaryDim: 'rgba(45, 212, 191, 0.14)',
-  primaryBorder: 'rgba(45, 212, 191, 0.32)',
-  onPrimary: '#03211d',
+  primary: '#75c9a4',
+  primaryDim: 'rgba(117, 201, 164, 0.14)',
+  primaryBorder: 'rgba(117, 201, 164, 0.34)',
+  onPrimary: '#092019',
 
-  accent: '#a78bfa',
-  accentDim: 'rgba(167, 139, 250, 0.14)',
+  accent: '#9adbbd',
+  accentDim: 'rgba(154, 219, 189, 0.14)',
 
-  text: '#eef6f5',
-  textMuted: '#7e9691',
-  textFaint: '#546965',
+  text: '#f0f7f4',
+  textMuted: '#9aa9a5',
+  textFaint: '#657873',
 
   danger: '#fb7185',
   dangerDim: 'rgba(251, 113, 133, 0.12)',
 
-  tabBar: '#081014',
-  tabBarBorder: '#122228',
+  tabBar: '#0a1513',
+  tabBarBorder: '#1a2d29',
 } as const;
 
 export const radius = {

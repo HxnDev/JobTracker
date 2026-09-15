@@ -30,9 +30,9 @@ function FilterSelect({ label, value, onChange, options }) {
   );
 }
 
-export function JobFilters({ query, setQuery, filters, setFilter, locations, onClear }) {
+export function JobFilters({ query, setQuery, filters, setFilter, locations, jobSites, onClear }) {
   const hasActiveFilters =
-    query || filters.status || filters.workMode || filters.location;
+    query || filters.status || filters.workMode || filters.location || filters.jobSite;
 
   return (
     <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
@@ -64,6 +64,12 @@ export function JobFilters({ query, setQuery, filters, setFilter, locations, onC
           value={filters.location}
           onChange={(v) => setFilter('location', v)}
           options={locations}
+        />
+        <FilterSelect
+          label="Sites"
+          value={filters.jobSite}
+          onChange={(v) => setFilter('jobSite', v)}
+          options={jobSites}
         />
         {hasActiveFilters && (
           <Button variant="ghost" size="sm" onClick={onClear}>

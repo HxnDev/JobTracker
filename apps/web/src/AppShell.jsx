@@ -80,7 +80,7 @@ export function AppShell({ onSignOut }) {
         lastSync={lastSync}
       />
 
-      <main className="container space-y-6 py-6">
+      <main className="container max-w-[1560px] space-y-6 py-7 lg:py-8">
         {view === 'dashboard' ? (
           <Suspense
             fallback={

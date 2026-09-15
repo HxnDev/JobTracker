@@ -9,7 +9,6 @@ import {
 } from '@jobtracker/shared';
 import {
   Activity,
-  Award,
   Briefcase,
   Building2,
   CalendarClock,
@@ -17,8 +16,8 @@ import {
   Hourglass,
   MapPin,
   MessageSquareReply,
+  CircleX,
   Timer,
-  TrendingUp,
 } from 'lucide-react-native';
 import type { ComponentType } from 'react';
 import { useMemo } from 'react';
@@ -36,7 +35,7 @@ import { Screen } from '@/components/Screen';
 import { useJobs } from '@/hooks/useJobs';
 import { colors, fonts, radius, sp } from '@/lib/theme';
 
-const FUNNEL_COLORS = ['#6366f1', '#38bdf8', '#a78bfa', '#34d399'];
+const FUNNEL_COLORS = ['#75c9a4', '#60ba93', '#4ca680', '#398f6c'];
 
 interface IconProps {
   color: string;
@@ -119,7 +118,8 @@ export default function Stats() {
   return (
     <Screen>
       <View style={[styles.titleRow, { paddingTop: insets.top + sp(4) }]}>
-        <Text style={styles.title}>Stats</Text>
+        <Text style={styles.title}>Dashboard</Text>
+        <Text style={styles.titleSubtitle}>Your application progress at a glance.</Text>
       </View>
 
       {isPending ? (
@@ -158,38 +158,31 @@ export default function Stats() {
             />
             <Kpi
               icon={MessageSquareReply}
-              label="Response rate"
-              value={`${a.responseRate}%`}
-              sub={`${a.rejected} rejected`}
-              tint="#38bdf8"
+              label="Applied"
+              value={a.applied}
+              sub={`${a.total ? Math.round((a.applied / a.total) * 100) : 0}% of total`}
+              tint={colors.primary}
             />
             <Kpi
-              icon={TrendingUp}
-              label="Interview rate"
-              value={`${a.interviewRate}%`}
-              sub={`${a.inProcess} in process`}
-              tint="#a78bfa"
+              icon={Timer}
+              label="In process"
+              value={a.inProcess}
+              sub={`${a.total ? Math.round((a.inProcess / a.total) * 100) : 0}% of total`}
+              tint="#f5bf4f"
             />
             <Kpi
-              icon={Award}
-              label="Offers"
-              value={a.offers}
-              sub={`${a.facts.activeShare}% still active`}
-              tint="#e879f9"
+              icon={CircleX}
+              label="Rejected"
+              value={a.rejected}
+              sub={`${a.total ? Math.round((a.rejected / a.total) * 100) : 0}% of total`}
+              tint="#ef6767"
             />
             <Kpi
               icon={CalendarClock}
               label="This week"
               value={a.thisWeek}
               sub="last 7 days"
-              tint="#34d399"
-            />
-            <Kpi
-              icon={Timer}
-              label="Avg age"
-              value={`${a.avgDays}d`}
-              sub="since applying"
-              tint="#fbbf24"
+              tint={colors.primary}
             />
           </View>
 
@@ -218,7 +211,7 @@ export default function Stats() {
               data={a.byLocation.slice(0, 6).map((l) => ({
                 label: l.name,
                 value: l.value,
-                color: '#38bdf8',
+                color: colors.primary,
               }))}
             />
           </ChartCard>
@@ -235,7 +228,7 @@ export default function Stats() {
               data={a.byJobSite.slice(0, 6).map((s) => ({
                 label: s.name,
                 value: s.value,
-                color: '#a78bfa',
+                color: colors.primary,
               }))}
             />
           </ChartCard>
@@ -308,12 +301,18 @@ const styles = StyleSheet.create({
   titleRow: {
     paddingHorizontal: sp(5),
     paddingBottom: sp(3),
+    gap: 2,
   },
   title: {
     color: colors.text,
     fontFamily: fonts.bold,
     fontSize: 26,
     letterSpacing: -0.5,
+  },
+  titleSubtitle: {
+    color: colors.textMuted,
+    fontFamily: fonts.regular,
+    fontSize: 12,
   },
   scroll: {
     paddingHorizontal: sp(4),

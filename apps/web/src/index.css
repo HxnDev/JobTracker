@@ -4,33 +4,33 @@
 
 @layer base {
   :root {
-    --background: 240 14% 5%;
-    --foreground: 220 20% 96%;
+    --background: 180 24% 4%;
+    --foreground: 156 22% 96%;
 
-    --card: 240 12% 8%;
-    --card-foreground: 220 20% 96%;
+    --card: 174 18% 7%;
+    --card-foreground: 156 22% 96%;
 
-    --popover: 240 14% 7%;
-    --popover-foreground: 220 20% 96%;
+    --popover: 174 21% 7%;
+    --popover-foreground: 156 22% 96%;
 
-    --primary: 245 80% 66%;
-    --primary-foreground: 240 20% 99%;
+    --primary: 153 45% 59%;
+    --primary-foreground: 163 55% 8%;
 
-    --secondary: 240 8% 16%;
-    --secondary-foreground: 220 20% 96%;
+    --secondary: 171 14% 13%;
+    --secondary-foreground: 156 22% 96%;
 
-    --muted: 240 8% 14%;
-    --muted-foreground: 240 8% 62%;
+    --muted: 171 12% 13%;
+    --muted-foreground: 164 9% 66%;
 
-    --accent: 158 64% 52%;
+    --accent: 153 45% 59%;
     --accent-foreground: 160 60% 8%;
 
     --destructive: 0 72% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 240 8% 18%;
-    --input: 240 8% 18%;
-    --ring: 245 80% 66%;
+    --border: 169 16% 16%;
+    --input: 169 16% 18%;
+    --ring: 153 45% 59%;
 
     --radius: 0.85rem;
   }
@@ -50,6 +50,7 @@
     @apply bg-background text-foreground;
     font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
     min-height: 100vh;
+    background-image: radial-gradient(circle at 14% 8%, hsl(155 44% 24% / 0.12), transparent 28%), radial-gradient(circle at 84% 60%, hsl(165 42% 20% / 0.1), transparent 30%);
   }
 
   /* Custom scrollbar */

@@ -138,6 +138,7 @@ export default function Applications() {
     <Screen>
       <View style={[styles.titleRow, { paddingTop: insets.top + sp(4) }]}>
         <Text style={styles.title}>Applications</Text>
+        <Text style={styles.titleSubtitle}>Track, manage and never miss an opportunity.</Text>
       </View>
 
       {isPending ? (
@@ -214,12 +215,18 @@ const styles = StyleSheet.create({
   titleRow: {
     paddingHorizontal: sp(5),
     paddingBottom: sp(3),
+    gap: 2,
   },
   title: {
     color: colors.text,
     fontFamily: fonts.bold,
     fontSize: 26,
     letterSpacing: -0.5,
+  },
+  titleSubtitle: {
+    color: colors.textMuted,
+    fontFamily: fonts.regular,
+    fontSize: 12,
   },
   headerBlock: {
     gap: sp(3),

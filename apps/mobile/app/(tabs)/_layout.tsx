@@ -30,7 +30,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="stats"
         options={{
-          title: 'Stats',
+          title: 'Dashboard',
           tabBarIcon: ({ color, size }) => <ChartPie color={color} size={size} />,
         }}
       />
