@@ -1,4 +1,12 @@
-import { Briefcase, LayoutDashboard, List, LogOut, Plus, RefreshCw } from 'lucide-react';
+import {
+  Briefcase,
+  Download,
+  LayoutDashboard,
+  List,
+  LogOut,
+  Plus,
+  RefreshCw,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
@@ -48,6 +56,8 @@ export function Header({
   onViewChange,
   onAdd,
   onRefresh,
+  onExport,
+  exportDisabled,
   onSignOut,
   loading,
   lastSync,
@@ -72,6 +82,16 @@ export function Header({
         <NavTabs view={view} onViewChange={onViewChange} />
 
         <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onExport}
+            disabled={exportDisabled}
+            aria-label="Export applications"
+          >
+            <Download className="h-4 w-4" />
+            <span className="hidden lg:inline">Export</span>
+          </Button>
           <Button
             variant="outline"
             size="sm"

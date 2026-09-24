@@ -4,6 +4,7 @@ import { Loader2 } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { Jobs } from '@/pages/Jobs';
 import { JobFormDialog } from '@/components/jobs/JobFormDialog';
+import { ExportDialog } from '@/components/jobs/ExportDialog';
 import { useJobs } from '@/hooks/useJobs';
 import { getNextJobId, createEmptyJob } from '@jobtracker/shared';
 
@@ -19,6 +20,7 @@ export function AppShell({ onSignOut }) {
   const [view, setView] = useState('dashboard');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState(null);
+  const [exportOpen, setExportOpen] = useState(false);
 
   const openAdd = () => {
     setEditing({
@@ -75,6 +77,8 @@ export function AppShell({ onSignOut }) {
         onViewChange={setView}
         onAdd={openAdd}
         onRefresh={handleRefresh}
+        onExport={() => setExportOpen(true)}
+        exportDisabled={loading || jobs.length === 0}
         onSignOut={onSignOut}
         loading={loading}
         lastSync={lastSync}
@@ -113,6 +117,7 @@ export function AppShell({ onSignOut }) {
         saving={saving}
         jobs={jobs}
       />
+      <ExportDialog open={exportOpen} onOpenChange={setExportOpen} jobs={jobs} />
     </div>
   );
 }
