@@ -61,7 +61,6 @@ export function computeAnalytics(jobs) {
   let inProcess = 0;
   let offers = 0;
   let rejected = 0;
-  let ghosted = 0;
   let responses = 0;
   let thisWeek = 0;
   let daysSum = 0;
@@ -75,13 +74,12 @@ export function computeAnalytics(jobs) {
     if (IN_PROCESS.has(s)) inProcess += 1;
     if (s === 'Offer') offers += 1;
     if (s === 'Rejected') rejected += 1;
-    if (s === 'Ghosted') ghosted += 1;
     if (RESPONSE.has(s)) responses += 1;
 
     const date = parseSheetDate(job.dateApplied);
     if (date) {
       if (!latest || date > latest) latest = date;
-      const open = s !== 'Rejected' && s !== 'Ghosted';
+      const open = s !== 'Rejected';
       if (open && (!oldestOpen || date < oldestOpen.date)) {
         oldestOpen = { date, job };
       }
@@ -123,7 +121,7 @@ export function computeAnalytics(jobs) {
           days: daysSince(oldestOpen.job.dateApplied),
         }
       : null,
-    activeShare: pct(total - rejected - ghosted),
+    activeShare: pct(total - rejected),
   };
 
   return {
@@ -132,7 +130,6 @@ export function computeAnalytics(jobs) {
     inProcess,
     offers,
     rejected,
-    ghosted,
     thisWeek,
     responseRate: pct(responses),
     interviewRate: pct(inProcess),
@@ -155,7 +152,6 @@ export const STATUS_COLORS = {
   Interview: '#67aee8',
   Offer: '#b985e8',
   Rejected: '#ef6767',
-  Ghosted: '#a1a1aa',
   Unknown: '#71717a',
 };
 

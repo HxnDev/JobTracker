@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View } from 'react-native';
-import { chipColors, fonts, radius, statusColors, workModeColors } from '@/lib/theme';
+import { chipColors, fonts, radius, statusColors } from '@/lib/theme';
 
 export function StatusPill({ status }: { status: string }) {
   const hex = statusColors[status] ?? statusColors.Unknown;
@@ -13,22 +13,6 @@ export function StatusPill({ status }: { status: string }) {
     >
       <View style={[styles.dot, { backgroundColor: hex }]} />
       <Text style={[styles.label, { color: hex }]}>{status || '—'}</Text>
-    </View>
-  );
-}
-
-export function WorkModePill({ mode }: { mode: string }) {
-  if (!mode) return null;
-  const hex = workModeColors[mode] ?? workModeColors.Unknown;
-  const chip = chipColors(hex);
-  return (
-    <View
-      style={[
-        styles.pill,
-        { backgroundColor: chip.backgroundColor, borderColor: chip.borderColor },
-      ]}
-    >
-      <Text style={[styles.label, { color: hex }]}>{mode}</Text>
     </View>
   );
 }

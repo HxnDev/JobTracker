@@ -13,7 +13,7 @@ function computeStats(jobs) {
     const s = job.status;
     if (s === 'Applied') applied += 1;
     if (interviewing.has(s)) inProcess += 1;
-    if (s === 'Rejected' || s === 'Ghosted') rejected += 1;
+    if (s === 'Rejected') rejected += 1;
     const d = daysSince(job.dateApplied);
     if (d !== null && d <= 7) thisWeek += 1;
   }

@@ -7,7 +7,13 @@ import { Button } from '@/components/ui/button';
 import { parseSheetDate } from '@jobtracker/shared';
 import { cn } from '@/lib/utils';
 
-const INITIAL_FILTERS = { status: '', workMode: '', location: '', jobSite: '' };
+const INITIAL_FILTERS = { status: '', month: '', location: '', jobSite: '' };
+
+function monthKey(value) {
+  const date = parseSheetDate(value);
+  if (!date) return '';
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+}
 
 function compare(a, b, key) {
   if (key === 'dateApplied') {
@@ -44,6 +50,24 @@ export function Jobs({ jobs, loading, error, onEdit, onAdd, onRetry }) {
       ),
     [jobs]
   );
+  const months = useMemo(() => {
+    const entries = new Map();
+    jobs.forEach((job) => {
+      const date = parseSheetDate(job.dateApplied);
+      if (!date) return;
+      const value = monthKey(date);
+      if (!entries.has(value)) {
+        entries.set(value, {
+          value,
+          label: date.toLocaleDateString('en-CH', {
+            month: 'long',
+            year: 'numeric',
+          }),
+        });
+      }
+    });
+    return [...entries.values()].sort((a, b) => b.value.localeCompare(a.value));
+  }, [jobs]);
 
   const rejectedCount = useMemo(
     () => jobs.filter((j) => j.status === 'Rejected').length,
@@ -58,12 +82,13 @@ export function Jobs({ jobs, loading, error, onEdit, onAdd, onRetry }) {
     const filtered = jobs.filter((job) => {
       if (hideRejected && job.status === 'Rejected') return false;
       if (filters.status && job.status !== filters.status) return false;
-      if (filters.workMode && job.workMode !== filters.workMode) return false;
+      if (filters.month && monthKey(job.dateApplied) !== filters.month) {
+        return false;
+      }
       if (filters.location && job.location !== filters.location) return false;
       if (filters.jobSite && job.jobSite !== filters.jobSite) return false;
       if (q) {
-        const hay =
-          `${job.jobTitle} ${job.company} ${job.location} ${job.jobId}`.toLowerCase();
+        const hay = `${job.jobTitle} ${job.company} ${job.location} ${job.jobId} ${job.rejectionReason || ''}`.toLowerCase();
         if (!hay.includes(q)) return false;
       }
       return true;
@@ -104,6 +129,7 @@ export function Jobs({ jobs, loading, error, onEdit, onAdd, onRetry }) {
           setFilter={setFilter}
           locations={locations}
           jobSites={jobSites}
+          months={months}
           onClear={clearFilters}
         />
 

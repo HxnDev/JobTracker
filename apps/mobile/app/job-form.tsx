@@ -13,7 +13,6 @@ import {
   LOCATION_SUGGESTIONS,
   parseSheetDate,
   STATUS_OPTIONS,
-  WORK_MODE_OPTIONS,
 } from '@jobtracker/shared';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Check, Search, X } from 'lucide-react-native';
@@ -312,14 +311,6 @@ export default function JobForm() {
           />
         </Field>
 
-        <Field label="Work Mode">
-          <OptionPills
-            options={WORK_MODE_OPTIONS}
-            value={form.workMode}
-            onChange={set('workMode')}
-          />
-        </Field>
-
         <Field label="Language">
           <OptionPills
             options={LANGUAGE_OPTIONS}
@@ -345,6 +336,19 @@ export default function JobForm() {
             autoCapitalize="none"
             keyboardType="url"
             style={styles.input}
+          />
+        </Field>
+
+        <Field label="Rejection Reason">
+          <TextInput
+            value={form.rejectionReason}
+            onChangeText={set('rejectionReason')}
+            placeholder="Optional note about why the application was rejected"
+            placeholderTextColor={colors.textFaint}
+            multiline
+            numberOfLines={4}
+            textAlignVertical="top"
+            style={[styles.input, styles.textArea]}
           />
         </Field>
       </ScrollView>
@@ -452,6 +456,10 @@ const styles = StyleSheet.create({
   },
   inputError: {
     borderColor: colors.danger,
+  },
+  textArea: {
+    minHeight: 96,
+    paddingTop: sp(3),
   },
   inputWrap: {
     position: 'relative',

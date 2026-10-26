@@ -1,5 +1,5 @@
 import { Badge } from '@/components/ui/badge';
-import { STATUS_STYLES, WORK_MODE_STYLES } from '@/constants/options';
+import { STATUS_STYLES } from '@/constants/options';
 import { cn } from '@/lib/utils';
 
 export function StatusBadge({ status }) {
@@ -10,10 +10,4 @@ export function StatusBadge({ status }) {
       {status || '—'}
     </Badge>
   );
-}
-
-export function WorkModeBadge({ mode }) {
-  if (!mode) return <span className="text-muted-foreground">—</span>;
-  const key = WORK_MODE_STYLES[mode] ? mode : 'Unknown';
-  return <Badge className={cn(WORK_MODE_STYLES[key])}>{mode}</Badge>;
 }

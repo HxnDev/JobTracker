@@ -3,7 +3,7 @@ import { formatDate } from '@jobtracker/shared';
 import { ExternalLink } from 'lucide-react-native';
 import { Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
-import { StatusPill, WorkModePill } from '@/components/StatusPill';
+import { StatusPill } from '@/components/StatusPill';
 import { colors, fonts, radius, sp } from '@/lib/theme';
 
 interface Props {
@@ -47,7 +47,6 @@ export function JobCard({ job, index, onPress }: Props) {
             </>
           )}
           <View style={styles.spacer} />
-          <WorkModePill mode={job.workMode} />
           {Boolean(job.jobUrl) && (
             <Pressable
               onPress={() => Linking.openURL(job.jobUrl)}
@@ -58,6 +57,11 @@ export function JobCard({ job, index, onPress }: Props) {
             </Pressable>
           )}
         </View>
+        {Boolean(job.rejectionReason) && (
+          <Text numberOfLines={2} style={styles.rejectionReason}>
+            Reason: {job.rejectionReason}
+          </Text>
+        )}
       </Pressable>
     </Animated.View>
   );
@@ -121,5 +125,11 @@ const styles = StyleSheet.create({
   linkButton: {
     marginLeft: sp(2),
     padding: 2,
+  },
+  rejectionReason: {
+    color: colors.danger,
+    fontFamily: fonts.regular,
+    fontSize: 12,
+    opacity: 0.85,
   },
 });

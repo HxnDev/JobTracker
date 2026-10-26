@@ -7,11 +7,11 @@ const COLUMNS = [
   { label: 'Company', value: (job) => job.company },
   { label: 'Location', value: (job) => job.location },
   { label: 'Language', value: (job) => job.language },
-  { label: 'Work Mode', value: (job) => job.workMode },
   { label: 'Job Site', value: (job) => job.jobSite },
   { label: 'Status', value: (job) => job.status },
   { label: 'Days Since Applied', value: (job) => job.daysSinceApplied ?? '' },
   { label: 'Job URL', value: (job) => job.jobUrl },
+  { label: 'Rejection Reason', value: (job) => job.rejectionReason },
 ];
 
 function exportFilename(extension) {
@@ -69,7 +69,7 @@ export async function exportJobsAsExcel(jobs) {
   const worksheet = workbook.addWorksheet('Applications', {
     views: [{ state: 'frozen', ySplit: 1 }],
   });
-  const widths = [12, 14, 36, 28, 18, 14, 15, 18, 14, 20, 48];
+  const widths = [12, 14, 36, 28, 18, 14, 18, 14, 20, 48, 42];
   worksheet.columns = COLUMNS.map((column, index) => ({
     header: column.label,
     key: `column-${index}`,
@@ -78,7 +78,7 @@ export async function exportJobsAsExcel(jobs) {
 
   jobs.forEach((job) => {
     const row = worksheet.addRow(COLUMNS.map((column) => column.value(job)));
-    const linkCell = row.getCell(11);
+    const linkCell = row.getCell(10);
     if (job.jobUrl) {
       linkCell.value = { text: job.jobUrl, hyperlink: job.jobUrl };
       linkCell.font = { color: { argb: 'FF4D9F7B' }, underline: true };

@@ -5,7 +5,7 @@
 //   Row 3: real column headers
 //   Row 4+: data
 //
-// Columns A..K map to the fields below. Column J ("Days Since Applied") is a
+// Columns A..L map to the fields below. Column J ("Days Since Applied") is a
 // live formula in the sheet, so we NEVER write to it (we compute it ourselves).
 
 export const DEFAULT_SPREADSHEET_ID = '1cnkweKJ-g9ds2kJ5YeXH4Te65Nx5KabcPVJ1mTQFhA4';
@@ -15,7 +15,7 @@ export const HEADER_ROW = 3;
 export const DATA_START_ROW = 4;
 
 // Highest column letter we touch.
-export const LAST_COLUMN = 'K';
+export const LAST_COLUMN = 'L';
 
 /**
  * @typedef {Object} Job
@@ -30,6 +30,7 @@ export const LAST_COLUMN = 'K';
  * @property {string} jobSite
  * @property {string} status
  * @property {string} jobUrl
+ * @property {string} rejectionReason
  * @property {number|null} [daysSinceApplied]
  */
 
@@ -46,10 +47,11 @@ export const COLUMNS = [
   { key: 'status', label: 'Status', col: 'I', index: 8 },
   { key: 'daysSinceApplied', label: 'Days', col: 'J', index: 9, computed: true },
   { key: 'jobUrl', label: 'Job URL', col: 'K', index: 10, hyperlink: true },
+  { key: 'rejectionReason', label: 'Rejection Reason', col: 'L', index: 11 },
 ];
 
 export const COLUMN_BY_KEY = Object.fromEntries(COLUMNS.map((c) => [c.key, c]));
 
-// The range that holds editable data (A..I). Column J (formula) and K (hyperlink)
-// are handled separately.
+// The range that holds the original editable data (A..I). Column J (formula),
+// K (hyperlink), and L (rejection reason) are handled separately.
 export const EDITABLE_RANGE_COLUMNS = { start: 'A', end: 'I' };

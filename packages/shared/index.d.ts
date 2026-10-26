@@ -19,6 +19,7 @@ export interface Job {
   jobSite: string;
   status: string;
   jobUrl: string;
+  rejectionReason: string;
   daysSinceApplied?: number | null;
 }
 
@@ -43,6 +44,7 @@ export const JOB_SITE_OPTIONS: string[];
 export const LOCATION_SUGGESTIONS: string[];
 export const WORK_MODE_ALIASES: Record<string, string>;
 export function normalizeWorkMode(raw: string | null | undefined): string;
+export function normalizeStatus(raw: string | null | undefined): string;
 
 // ---------- dates ----------
 export function parseSheetDate(
@@ -92,7 +94,6 @@ export interface Analytics {
   inProcess: number;
   offers: number;
   rejected: number;
-  ghosted: number;
   thisWeek: number;
   responseRate: number;
   interviewRate: number;

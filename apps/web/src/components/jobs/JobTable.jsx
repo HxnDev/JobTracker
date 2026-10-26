@@ -1,5 +1,5 @@
 import { ArrowUpDown, ArrowUp, ArrowDown, ExternalLink, Pencil } from 'lucide-react';
-import { StatusBadge, WorkModeBadge } from '@/components/jobs/StatusBadge';
+import { StatusBadge } from '@/components/jobs/StatusBadge';
 import { Button } from '@/components/ui/button';
 import { formatDate } from '@jobtracker/shared';
 import { cn } from '@/lib/utils';
@@ -71,9 +71,6 @@ export function JobTable({ jobs, sort, onSort, onEdit, viewMode = 'list' }) {
                 <th className="px-3 py-3 text-left font-medium text-muted-foreground">
                   Location
                 </th>
-                <th className="px-3 py-3 text-left font-medium text-muted-foreground">
-                  Mode
-                </th>
                 <SortHeader label="Status" sortKey="status" sort={sort} onSort={onSort} />
                 <SortHeader
                   label="Days"
@@ -85,6 +82,9 @@ export function JobTable({ jobs, sort, onSort, onEdit, viewMode = 'list' }) {
                 <th className="px-3 py-3 text-left font-medium text-muted-foreground">
                   Link
                 </th>
+                <th className="px-3 py-3 text-left font-medium text-muted-foreground">
+                  Rejection reason
+                </th>
                 <th className="px-3 py-3" />
               </tr>
             </thead>
@@ -92,56 +92,61 @@ export function JobTable({ jobs, sort, onSort, onEdit, viewMode = 'list' }) {
               {jobs.map((job) => {
                 const rejected = job.status === 'Rejected';
                 return (
-                <tr
-                  key={job.rowNumber}
-                  className="border-b border-border/40 transition-colors last:border-0 hover:bg-secondary/30"
-                >
-                  <td className="px-3 py-3 font-mono text-xs text-muted-foreground">
-                    {job.jobId || '—'}
-                  </td>
-                  <td className="whitespace-nowrap px-3 py-3 text-muted-foreground">
-                    {formatDate(job.dateApplied) || '—'}
-                  </td>
-                  <td className="max-w-[260px] px-3 py-3">
-                    <span
-                      className={cn(
-                        'line-clamp-2 font-medium',
-                        rejected ? 'text-rose-400' : 'text-foreground'
-                      )}
+                  <tr
+                    key={job.rowNumber}
+                    className="border-b border-border/40 transition-colors last:border-0 hover:bg-secondary/30"
+                  >
+                    <td className="px-3 py-3 font-mono text-xs text-muted-foreground">
+                      {job.jobId || '—'}
+                    </td>
+                    <td className="whitespace-nowrap px-3 py-3 text-muted-foreground">
+                      {formatDate(job.dateApplied) || '—'}
+                    </td>
+                    <td className="max-w-[260px] px-3 py-3">
+                      <span
+                        className={cn(
+                          'line-clamp-2 font-medium',
+                          rejected ? 'text-rose-400' : 'text-foreground'
+                        )}
+                      >
+                        {job.jobTitle || '—'}
+                      </span>
+                    </td>
+                    <td className={cn('px-3 py-3', rejected && 'text-rose-400/90')}>
+                      {job.company || '—'}
+                    </td>
+                    <td className="whitespace-nowrap px-3 py-3 text-muted-foreground">
+                      {job.location || '—'}
+                    </td>
+                    <td className="px-3 py-3">
+                      <StatusBadge status={job.status} />
+                    </td>
+                    <td className="px-3 py-3 text-right tabular-nums text-muted-foreground">
+                      {job.daysSinceApplied ?? '—'}
+                    </td>
+                    <td className="px-3 py-3">
+                      <JobLink url={job.jobUrl} />
+                    </td>
+                    <td
+                      className="max-w-[220px] px-3 py-3 text-muted-foreground"
+                      title={job.rejectionReason || undefined}
                     >
-                      {job.jobTitle || '—'}
-                    </span>
-                  </td>
-                  <td className={cn('px-3 py-3', rejected && 'text-rose-400/90')}>
-                    {job.company || '—'}
-                  </td>
-                  <td className="whitespace-nowrap px-3 py-3 text-muted-foreground">
-                    {job.location || '—'}
-                  </td>
-                  <td className="px-3 py-3">
-                    <WorkModeBadge mode={job.workMode} />
-                  </td>
-                  <td className="px-3 py-3">
-                    <StatusBadge status={job.status} />
-                  </td>
-                  <td className="px-3 py-3 text-right tabular-nums text-muted-foreground">
-                    {job.daysSinceApplied ?? '—'}
-                  </td>
-                  <td className="px-3 py-3">
-                    <JobLink url={job.jobUrl} />
-                  </td>
-                  <td className="px-3 py-3 text-right">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8"
-                      onClick={() => onEdit(job)}
-                      aria-label={`Edit ${job.jobId}`}
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                  </td>
-                </tr>
+                      <span className="line-clamp-2">
+                        {job.rejectionReason || '—'}
+                      </span>
+                    </td>
+                    <td className="px-3 py-3 text-right">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={() => onEdit(job)}
+                        aria-label={`Edit ${job.jobId}`}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                    </td>
+                  </tr>
                 );
               })}
             </tbody>
@@ -188,8 +193,12 @@ export function JobTable({ jobs, sort, onSort, onEdit, viewMode = 'list' }) {
                   <span>{job.daysSinceApplied}d ago</span>
                 </>
               )}
-              <WorkModeBadge mode={job.workMode} />
             </div>
+            {job.rejectionReason && (
+              <p className="mt-3 line-clamp-2 text-xs text-rose-300/80">
+                Reason: {job.rejectionReason}
+              </p>
+            )}
           </button>
         ))}
       </div>

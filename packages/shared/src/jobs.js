@@ -1,4 +1,4 @@
-import { normalizeWorkMode } from './options.js';
+import { normalizeStatus, normalizeWorkMode } from './options.js';
 import { daysSince, toSheetDate } from './dates.js';
 
 /** @typedef {import('./schema.js').Job} Job */
@@ -31,10 +31,11 @@ const EMPTY_JOB = {
   company: '',
   location: '',
   language: 'English',
-  workMode: 'Hybrid',
+  workMode: '',
   jobSite: 'LinkedIn',
   status: '',
   jobUrl: '',
+  rejectionReason: '',
 };
 
 /** @returns {Job} */
@@ -43,7 +44,7 @@ export function createEmptyJob() {
 }
 
 // Turns the raw sheet arrays into clean job objects.
-// `rows` = values from A{start}:K  ·  `urlRows` = FORMULA values from K{start}:K
+// `rows` = values from A{start}:L  ·  `urlRows` = FORMULA values from K{start}:K
 /** @returns {Job[]} */
 export function mapRowsToJobs(rows, urlRows, startRow) {
   const jobs = [];
@@ -69,8 +70,9 @@ export function mapRowsToJobs(rows, urlRows, startRow) {
       language: get(5),
       workMode: normalizeWorkMode(get(6)),
       jobSite: get(7),
-      status: get(8) || 'Applied',
+      status: normalizeStatus(get(8)) || 'Applied',
       jobUrl: extractUrl(urlCell),
+      rejectionReason: get(11),
       daysSinceApplied: daysSince(dateApplied),
     });
   });
@@ -90,7 +92,7 @@ export function jobToEditableRow(job) {
     job.language || '',
     normalizeWorkMode(job.workMode) || '',
     job.jobSite || '',
-    job.status || '',
+    normalizeStatus(job.status) || '',
   ];
 }
 

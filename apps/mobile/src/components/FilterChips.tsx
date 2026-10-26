@@ -2,7 +2,7 @@ import { Pressable, ScrollView, StyleSheet, Text } from 'react-native';
 import { colors, fonts, radius, sp } from '@/lib/theme';
 
 interface Props {
-  options: string[];
+  options: Array<string | { value: string; label: string }>;
   /** Empty string means "All". */
   value: string;
   onChange: (value: string) => void;
@@ -10,7 +10,12 @@ interface Props {
 }
 
 export function FilterChips({ options, value, onChange, allLabel = 'All' }: Props) {
-  const items = ['', ...options];
+  const items = [
+    { value: '', label: allLabel },
+    ...options.map((option) =>
+      typeof option === 'string' ? { value: option, label: option } : option
+    ),
+  ];
   return (
     <ScrollView
       horizontal
@@ -18,11 +23,11 @@ export function FilterChips({ options, value, onChange, allLabel = 'All' }: Prop
       contentContainerStyle={styles.row}
     >
       {items.map((option) => {
-        const active = value === option;
+        const active = value === option.value;
         return (
           <Pressable
-            key={option || '__all__'}
-            onPress={() => onChange(option)}
+            key={option.value || '__all__'}
+            onPress={() => onChange(option.value)}
             style={({ pressed }) => [
               styles.chip,
               active && styles.chipActive,
@@ -30,7 +35,7 @@ export function FilterChips({ options, value, onChange, allLabel = 'All' }: Prop
             ]}
           >
             <Text style={[styles.label, active && styles.labelActive]}>
-              {option || allLabel}
+              {option.label}
             </Text>
           </Pressable>
         );

@@ -20,7 +20,6 @@ import {
 } from '@/components/ui/select';
 import {
   STATUS_OPTIONS,
-  WORK_MODE_OPTIONS,
   LANGUAGE_OPTIONS,
   JOB_SITE_OPTIONS,
   LOCATION_SUGGESTIONS,
@@ -260,13 +259,6 @@ export function JobFormDialog({ open, onOpenChange, job, jobs, onSave, onDelete,
             />
 
             <FieldSelect
-              label="Work Mode"
-              value={form.workMode}
-              onChange={set('workMode')}
-              options={WORK_MODE_OPTIONS}
-            />
-
-            <FieldSelect
               label="Language"
               value={form.language}
               onChange={set('language')}
@@ -287,6 +279,17 @@ export function JobFormDialog({ open, onOpenChange, job, jobs, onSave, onDelete,
                 value={form.jobUrl}
                 onChange={setInput('jobUrl')}
                 placeholder="https://..."
+              />
+            </div>
+
+            <div className="space-y-1.5 sm:col-span-2">
+              <Label>Rejection Reason</Label>
+              <textarea
+                value={form.rejectionReason}
+                onChange={setInput('rejectionReason')}
+                placeholder="Optional — add feedback or the reason given"
+                rows={3}
+                className="flex w-full resize-y rounded-lg border border-input bg-secondary/40 px-3 py-2 text-sm text-foreground shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background"
               />
             </div>
           </div>

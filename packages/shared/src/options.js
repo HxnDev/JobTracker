@@ -7,7 +7,6 @@ export const STATUS_OPTIONS = [
   'Interview',
   'Offer',
   'Rejected',
-  'Ghosted',
 ];
 
 export const WORK_MODE_OPTIONS = ['On-Site', 'Hybrid', 'Remote'];
@@ -40,4 +39,10 @@ export function normalizeWorkMode(raw) {
   if (!raw) return '';
   const key = String(raw).trim().toLowerCase();
   return WORK_MODE_ALIASES[key] || String(raw).trim();
+}
+
+/** Legacy Ghosted rows remain readable but are presented as Rejected. */
+export function normalizeStatus(raw) {
+  const value = String(raw || '').trim();
+  return value.toLowerCase() === 'ghosted' ? 'Rejected' : value;
 }

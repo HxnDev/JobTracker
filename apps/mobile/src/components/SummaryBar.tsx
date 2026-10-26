@@ -15,7 +15,7 @@ function computeStats(jobs: Job[]) {
     const s = job.status;
     if (s === 'Applied') applied += 1;
     if (IN_PROCESS.has(s)) inProcess += 1;
-    if (s === 'Rejected' || s === 'Ghosted') closed += 1;
+    if (s === 'Rejected') closed += 1;
     const d = daysSince(job.dateApplied);
     if (d !== null && d <= 7) thisWeek += 1;
   }

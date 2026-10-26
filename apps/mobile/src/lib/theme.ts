@@ -1,7 +1,7 @@
 // Job Tracker mobile theme — same design language as the web app (near-black,
 // glassy cards and soft green glows shared with the desktop redesign.
 
-import { STATUS_COLORS, WORK_MODE_COLORS } from '@jobtracker/shared';
+import { STATUS_COLORS } from '@jobtracker/shared';
 
 export const colors = {
   background: '#07100f',
@@ -50,7 +50,6 @@ export const fonts = {
 } as const;
 
 export const statusColors: Record<string, string> = STATUS_COLORS;
-export const workModeColors: Record<string, string> = WORK_MODE_COLORS;
 
 /** Translucent chip colors derived from a hex status color. */
 export function chipColors(hex: string) {

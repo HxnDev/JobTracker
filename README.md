@@ -14,7 +14,7 @@ Sheets API via browser OAuth.
 - **Browser-only OAuth.** Google Identity Services (token model) — no client secret,
   no refresh token, no backend.
 - **Real CRUD.** Add / edit applications, change status, open the job link.
-- **Search, filter & sort** by status, work mode, city, date, and "days since".
+- **Search, filter & sort** by status, application month, city, date, and "days since".
 - **Handles the messy sheet** — mixed date formats, the `Hybird` typo, and the
   hidden `=HYPERLINK()` job links are all parsed correctly.
 - **Never breaks your formulas.** The "Days Since Applied" formula column is never
@@ -38,11 +38,12 @@ column headers in row 3), so data starts at **row 4**. Columns:
 | D | Company | |
 | E | Location | |
 | F | Language | |
-| G | Work Mode | `Hybird` normalized to `Hybrid` for display |
+| G | Work Mode | Legacy column preserved for existing sheet data; no longer shown in the apps |
 | H | Job Site | |
 | I | Status | |
 | J | Days Since Applied | **read-only formula — never written** |
 | K | Job URL | stored as `=HYPERLINK(url,"Open Job")` |
+| L | Rejection Reason | optional free-text note |
 
 ## Local setup
 
@@ -88,7 +89,7 @@ publishes to GitHub Pages.
 
 - **Done:** Applications table (search / filter / sort, rejected hidden by default
   with a toggle and red highlight) + a **Dashboard** with KPIs and charts
-  (applications over time, status breakdown, top locations, work mode, job sites).
+  (applications over time, status breakdown, top locations, and job sites).
 - **Next:** Kanban with drag-drop, auto-refresh, conflict detection.
 
 ## License

@@ -8,7 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { STATUS_OPTIONS, WORK_MODE_OPTIONS } from '@jobtracker/shared';
+import { STATUS_OPTIONS } from '@jobtracker/shared';
 
 const ALL = '__all__';
 
@@ -21,8 +21,11 @@ function FilterSelect({ label, value, onChange, options }) {
       <SelectContent>
         <SelectItem value={ALL}>{`All ${label}`}</SelectItem>
         {options.map((opt) => (
-          <SelectItem key={opt} value={opt}>
-            {opt}
+          <SelectItem
+            key={typeof opt === 'string' ? opt : opt.value}
+            value={typeof opt === 'string' ? opt : opt.value}
+          >
+            {typeof opt === 'string' ? opt : opt.label}
           </SelectItem>
         ))}
       </SelectContent>
@@ -30,9 +33,18 @@ function FilterSelect({ label, value, onChange, options }) {
   );
 }
 
-export function JobFilters({ query, setQuery, filters, setFilter, locations, jobSites, onClear }) {
+export function JobFilters({
+  query,
+  setQuery,
+  filters,
+  setFilter,
+  locations,
+  jobSites,
+  months,
+  onClear,
+}) {
   const hasActiveFilters =
-    query || filters.status || filters.workMode || filters.location || filters.jobSite;
+    query || filters.status || filters.month || filters.location || filters.jobSite;
 
   return (
     <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
@@ -54,10 +66,10 @@ export function JobFilters({ query, setQuery, filters, setFilter, locations, job
           options={STATUS_OPTIONS}
         />
         <FilterSelect
-          label="Modes"
-          value={filters.workMode}
-          onChange={(v) => setFilter('workMode', v)}
-          options={WORK_MODE_OPTIONS}
+          label="Months"
+          value={filters.month}
+          onChange={(v) => setFilter('month', v)}
+          options={months}
         />
         <FilterSelect
           label="Cities"

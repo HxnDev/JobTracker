@@ -1,7 +1,7 @@
 // Platform-agnostic Google Sheets API v4 client. Auth is injected: the web app
 // passes its GIS token getter, the mobile app its expo-auth-session one.
 
-import { DATA_START_ROW, LAST_COLUMN } from './schema.js';
+import { DATA_START_ROW, HEADER_ROW, LAST_COLUMN } from './schema.js';
 import { mapRowsToJobs, jobToEditableRow, toHyperlinkFormula } from './jobs.js';
 
 const API = 'https://sheets.googleapis.com/v4/spreadsheets';
@@ -83,8 +83,8 @@ export function createSheetsClient({
     return DATA_START_ROW + count;
   }
 
-  // Writes A..I (editable) + K (hyperlink) for a given row. Column J (formula)
-  // is deliberately left untouched.
+  // Writes A..I (editable), K (hyperlink), and L (rejection reason) for a
+  // given row. Column J (formula) is deliberately left untouched.
   async function writeRow(rowNumber, job) {
     const aToI = `${API}/${spreadsheetId}/values/${range(
       `A${rowNumber}:I${rowNumber}`
@@ -94,17 +94,35 @@ export function createSheetsClient({
       `K${rowNumber}`
     )}?valueInputOption=USER_ENTERED`;
 
+    const lCell = `${API}/${spreadsheetId}/values/${range(
+      `L${rowNumber}`
+    )}?valueInputOption=USER_ENTERED`;
+
+    const lHeader = `${API}/${spreadsheetId}/values/${range(
+      `L${HEADER_ROW}`
+    )}?valueInputOption=USER_ENTERED`;
+
     await apiFetch(aToI, {
       method: 'PUT',
       body: JSON.stringify({ values: [jobToEditableRow(job)] }),
     });
 
-    await apiFetch(kCell, {
-      method: 'PUT',
-      body: JSON.stringify({
-        values: [[job.jobUrl ? toHyperlinkFormula(job.jobUrl) : '']],
+    await Promise.all([
+      apiFetch(kCell, {
+        method: 'PUT',
+        body: JSON.stringify({
+          values: [[job.jobUrl ? toHyperlinkFormula(job.jobUrl) : '']],
+        }),
       }),
-    });
+      apiFetch(lCell, {
+        method: 'PUT',
+        body: JSON.stringify({ values: [[job.rejectionReason || '']] }),
+      }),
+      apiFetch(lHeader, {
+        method: 'PUT',
+        body: JSON.stringify({ values: [['Rejection Reason']] }),
+      }),
+    ]);
   }
 
   async function updateJob(job) {

@@ -1,12 +1,8 @@
-// Applications: search, status/work-mode filters, summary bar, hide-rejected
+// Applications: search, status/month filters, summary bar, hide-rejected
 // toggle — parity with the web app's Applications view (edit form is phase 3).
 
 import type { Job } from '@jobtracker/shared';
-import {
-  parseSheetDate,
-  STATUS_OPTIONS,
-  WORK_MODE_OPTIONS,
-} from '@jobtracker/shared';
+import { parseSheetDate, STATUS_OPTIONS } from '@jobtracker/shared';
 import { router } from 'expo-router';
 import { Eye, EyeOff, Plus, Search, X } from 'lucide-react-native';
 import { useMemo, useState } from 'react';
@@ -36,13 +32,19 @@ function sortByDateDesc(jobs: Job[]) {
   });
 }
 
+function monthKey(value: Job['dateApplied']) {
+  const date = parseSheetDate(value);
+  if (!date) return '';
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+}
+
 export default function Applications() {
   const insets = useSafeAreaInsets();
   const { data, isPending, isRefetching, error, refetch } = useJobs();
 
   const [query, setQuery] = useState('');
   const [status, setStatus] = useState('');
-  const [workMode, setWorkMode] = useState('');
+  const [month, setMonth] = useState('');
   const [showRejected, setShowRejected] = useState(true);
 
   const jobs = data ?? [];
@@ -52,6 +54,24 @@ export default function Applications() {
     [jobs]
   );
 
+  const monthOptions = useMemo(() => {
+    const uniqueMonths = new Set(
+      jobs.map((job) => monthKey(job.dateApplied)).filter(Boolean)
+    );
+    return [...uniqueMonths]
+      .sort((a, b) => b.localeCompare(a))
+      .map((value) => {
+        const [year, monthNumber] = value.split('-').map(Number);
+        return {
+          value,
+          label: new Date(year, monthNumber - 1, 1).toLocaleDateString('en-CH', {
+            month: 'long',
+            year: 'numeric',
+          }),
+        };
+      });
+  }, [jobs]);
+
   const visibleJobs = useMemo(() => {
     const q = query.trim().toLowerCase();
     // Only hide rejected when the user isn't explicitly filtering for them.
@@ -60,17 +80,16 @@ export default function Applications() {
     const filtered = jobs.filter((job) => {
       if (hideRejected && job.status === 'Rejected') return false;
       if (status && job.status !== status) return false;
-      if (workMode && job.workMode !== workMode) return false;
+      if (month && monthKey(job.dateApplied) !== month) return false;
       if (q) {
-        const hay =
-          `${job.jobTitle} ${job.company} ${job.location} ${job.jobId}`.toLowerCase();
+        const hay = `${job.jobTitle} ${job.company} ${job.location} ${job.jobId} ${job.rejectionReason}`.toLowerCase();
         if (!hay.includes(q)) return false;
       }
       return true;
     });
 
     return sortByDateDesc(filtered);
-  }, [jobs, query, status, workMode, showRejected]);
+  }, [jobs, query, status, month, showRejected]);
 
   const header = (
     <View style={styles.headerBlock}>
@@ -96,10 +115,10 @@ export default function Applications() {
 
       <FilterChips options={STATUS_OPTIONS} value={status} onChange={setStatus} />
       <FilterChips
-        options={WORK_MODE_OPTIONS}
-        value={workMode}
-        onChange={setWorkMode}
-        allLabel="All modes"
+        options={monthOptions}
+        value={month}
+        onChange={setMonth}
+        allLabel="All months"
       />
 
       <View style={styles.countRow}>
