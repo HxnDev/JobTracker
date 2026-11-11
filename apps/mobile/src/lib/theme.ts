@@ -26,6 +26,12 @@ export const colors = {
   danger: '#fb7185',
   dangerDim: 'rgba(251, 113, 133, 0.12)',
 
+  warning: '#f5bf4f',
+  warningDim: 'rgba(245, 191, 79, 0.1)',
+  warningBorder: 'rgba(245, 191, 79, 0.3)',
+  warningText: '#fef3c7',
+  warningTextMuted: '#d9c995',
+
   tabBar: '#0a1513',
   tabBarBorder: '#1a2d29',
 } as const;

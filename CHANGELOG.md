@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Duplicate warnings now appear as soon as an existing job title and company are entered, before the rest of the application form is completed.
 - Made application tracking more focused on web and mobile: removed Ghosted and Work Mode controls, added rejection reasons, and added filtering by application month.
 - Added website exports for downloading all synced applications as an Excel workbook or CSV spreadsheet.
 - Simplified the dashboard by removing the work mode, application pipeline, and language sections.

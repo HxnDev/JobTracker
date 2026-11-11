@@ -15,7 +15,7 @@ import {
   STATUS_OPTIONS,
 } from '@jobtracker/shared';
 import { router, useLocalSearchParams } from 'expo-router';
-import { Check, Search, X } from 'lucide-react-native';
+import { AlertTriangle, Check, Search, X } from 'lucide-react-native';
 import { useMemo, useState } from 'react';
 import {
   ActivityIndicator,
@@ -188,6 +188,10 @@ export default function JobForm() {
     }),
     [jobs]
   );
+  const duplicate = useMemo(() => {
+    if (editing || !form.jobTitle.trim() || !form.company.trim()) return null;
+    return findDuplicateApplication(jobs, form);
+  }, [editing, form.company, form.jobTitle, form.jobUrl, jobs]);
 
   const set = (key: keyof Job) => (value: string) =>
     setForm((f) => ({ ...f, [key]: value }));
@@ -289,6 +293,18 @@ export default function JobForm() {
         <SuggestionField label="Job Title" value={form.jobTitle} onChange={set('jobTitle')} suggestions={suggestions.jobTitle} placeholder="e.g. Senior Full Stack Developer" error={errors.jobTitle} />
 
         <SuggestionField label="Company" value={form.company} onChange={set('company')} suggestions={suggestions.company} placeholder="e.g. Proton Mail" error={errors.company} />
+
+        {duplicate ? (
+          <View style={styles.duplicateCard} accessibilityLiveRegion="polite">
+            <AlertTriangle color={colors.warning} size={20} />
+            <View style={styles.duplicateTextBlock}>
+              <Text style={styles.duplicateTitle}>This application may already exist</Text>
+              <Text style={styles.duplicateText}>
+                {duplicate.jobId} was added on {formatDate(duplicate.dateApplied)} for {duplicate.jobTitle} at {duplicate.company}.
+              </Text>
+            </View>
+          </View>
+        ) : null}
 
         <SuggestionField label="Location" value={form.location} onChange={set('location')} suggestions={suggestions.location} placeholder="e.g. Geneva" />
 
@@ -442,6 +458,31 @@ const styles = StyleSheet.create({
     color: colors.danger,
     fontFamily: fonts.regular,
     fontSize: 11,
+  },
+  duplicateCard: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: sp(3),
+    backgroundColor: colors.warningDim,
+    borderColor: colors.warningBorder,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderRadius: radius.md,
+    padding: sp(3.5),
+  },
+  duplicateTextBlock: {
+    flex: 1,
+    gap: sp(1),
+  },
+  duplicateTitle: {
+    color: colors.warningText,
+    fontFamily: fonts.semibold,
+    fontSize: 13,
+  },
+  duplicateText: {
+    color: colors.warningTextMuted,
+    fontFamily: fonts.regular,
+    fontSize: 12,
+    lineHeight: 18,
   },
   input: {
     backgroundColor: colors.card,

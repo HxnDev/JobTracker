@@ -152,7 +152,6 @@ export function JobFormDialog({ open, onOpenChange, job, jobs, onSave, onDelete,
   const [form, setForm] = useState(() => buildState(job));
   const [errors, setErrors] = useState({});
   const [confirmDelete, setConfirmDelete] = useState(false);
-  const [duplicate, setDuplicate] = useState(null);
   const suggestions = useMemo(
     () => ({
       jobTitle: buildJobSuggestions(jobs, 'jobTitle'),
@@ -161,19 +160,21 @@ export function JobFormDialog({ open, onOpenChange, job, jobs, onSave, onDelete,
     }),
     [jobs]
   );
+  const duplicate = useMemo(() => {
+    if (isEdit || !form.jobTitle.trim() || !form.company.trim()) return null;
+    return findDuplicateApplication(jobs, form);
+  }, [form.company, form.jobTitle, form.jobUrl, isEdit, jobs]);
 
   useEffect(() => {
     if (open) {
       setForm(buildState(job));
       setErrors({});
       setConfirmDelete(false);
-      setDuplicate(null);
     }
   }, [open, job]);
 
   const set = (key) => (value) => {
     setForm((f) => ({ ...f, [key]: value }));
-    setDuplicate(null);
   };
   const setInput = (key) => (e) => set(key)(e.target.value);
 
@@ -192,14 +193,6 @@ export function JobFormDialog({ open, onOpenChange, job, jobs, onSave, onDelete,
       dateApplied: form.dateInput ? fromInputDate(form.dateInput) : form.dateApplied,
     };
     delete payload.dateInput;
-
-    if (!isEdit && !duplicate) {
-      const match = findDuplicateApplication(jobs, payload);
-      if (match) {
-        setDuplicate(match);
-        return;
-      }
-    }
 
     try {
       await onSave(payload);
@@ -238,6 +231,26 @@ export function JobFormDialog({ open, onOpenChange, job, jobs, onSave, onDelete,
             </div>
 
             <SuggestionInput label="Company" field="company" value={form.company} onChange={set('company')} suggestions={suggestions.company} error={errors.company} placeholder="e.g. Proton Mail" />
+
+            {duplicate && (
+              <div
+                role="alert"
+                aria-live="polite"
+                className="rounded-xl border border-amber-400/30 bg-amber-400/10 p-4 sm:col-span-2"
+              >
+                <div className="flex gap-3">
+                  <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-300" />
+                  <div className="space-y-1">
+                    <p className="text-sm font-semibold text-amber-100">
+                      This application may already exist
+                    </p>
+                    <p className="text-xs leading-relaxed text-amber-100/70">
+                      {duplicate.jobId} was added on {formatDate(duplicate.dateApplied)} for {duplicate.jobTitle} at {duplicate.company}.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
 
             <SuggestionInput label="Location" field="location" value={form.location} onChange={set('location')} suggestions={suggestions.location} placeholder="e.g. Geneva" />
 
@@ -293,20 +306,6 @@ export function JobFormDialog({ open, onOpenChange, job, jobs, onSave, onDelete,
               />
             </div>
           </div>
-
-          {duplicate && (
-            <div className="rounded-xl border border-amber-400/30 bg-amber-400/10 p-4">
-              <div className="flex gap-3">
-                <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-300" />
-                <div className="space-y-1">
-                  <p className="text-sm font-semibold text-amber-100">This application may already exist</p>
-                  <p className="text-xs leading-relaxed text-amber-100/70">
-                    {duplicate.jobId} was added on {formatDate(duplicate.dateApplied)} for {duplicate.jobTitle} at {duplicate.company}.
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
 
           {confirmDelete ? (
             <div className="mt-2 space-y-3 rounded-xl border border-destructive/40 bg-destructive/10 p-3">

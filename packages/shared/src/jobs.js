@@ -141,7 +141,7 @@ export function buildJobSuggestions(jobs, key, defaults = []) {
 
 /**
  * Finds an existing application before a new row is appended. A matching URL is
- * definitive; otherwise title + company (+ location when both have one) must match.
+ * definitive; otherwise title + company must match.
  * @param {Job[]} jobs
  * @param {Job} candidate
  * @returns {Job|null}
@@ -150,7 +150,6 @@ export function findDuplicateApplication(jobs, candidate) {
   const url = normalized(candidate.jobUrl).replace(/\/$/, '');
   const title = normalized(candidate.jobTitle);
   const company = normalized(candidate.company);
-  const location = normalized(candidate.location);
 
   return (
     jobs.find((job) => {
@@ -160,8 +159,7 @@ export function findDuplicateApplication(jobs, candidate) {
       if (title !== normalized(job.jobTitle) || company !== normalized(job.company)) {
         return false;
       }
-      const existingLocation = normalized(job.location);
-      return !location || !existingLocation || location === existingLocation;
+      return true;
     }) || null
   );
 }
