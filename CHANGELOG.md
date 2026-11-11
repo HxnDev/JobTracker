@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Status, month, city, and job-site filters now update every application KPI and dashboard chart, and the selection stays active when switching between Applications and Dashboard.
 - Duplicate warnings now appear as soon as an existing job title and company are entered, before the rest of the application form is completed.
 - Made application tracking more focused on web and mobile: removed Ghosted and Work Mode controls, added rejection reasons, and added filtering by application month.
 - Added website exports for downloading all synced applications as an Excel workbook or CSV spreadsheet.

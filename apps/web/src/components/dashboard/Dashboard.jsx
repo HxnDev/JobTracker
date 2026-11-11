@@ -27,9 +27,12 @@ import {
   CircleX,
 } from 'lucide-react';
 import {
+  buildJobFilterOptions,
   computeAnalytics,
+  filterJobs,
   STATUS_COLORS,
 } from '@jobtracker/shared';
+import { JobFilters } from '@/components/jobs/JobFilters';
 
 const AXIS = { fill: 'hsl(164 9% 66%)', fontSize: 12 };
 const GRID = 'hsl(169 16% 16%)';
@@ -117,8 +120,10 @@ function MetricBars({ items }) {
   );
 }
 
-export function Dashboard({ jobs }) {
-  const a = useMemo(() => computeAnalytics(jobs), [jobs]);
+export function Dashboard({ jobs, filters, setFilter, onClearFilters }) {
+  const filterOptions = useMemo(() => buildJobFilterOptions(jobs), [jobs]);
+  const filteredJobs = useMemo(() => filterJobs(jobs, filters), [filters, jobs]);
+  const a = useMemo(() => computeAnalytics(filteredJobs), [filteredJobs]);
 
   if (!jobs.length) {
     return (
@@ -141,8 +146,22 @@ export function Dashboard({ jobs }) {
       <div>
         <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">Good morning, Hassan 👋</h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          {a.total} applications · Keep going. The right opportunity is out there.
+          {a.total} of {jobs.length} applications · All insights reflect the active filters.
         </p>
+      </div>
+
+      <div className="glass rounded-2xl border border-border/70 p-4">
+        <JobFilters
+          query=""
+          setQuery={() => {}}
+          filters={filters}
+          setFilter={setFilter}
+          locations={filterOptions.locations}
+          jobSites={filterOptions.jobSites}
+          months={filterOptions.months}
+          onClear={onClearFilters}
+          showSearch={false}
+        />
       </div>
 
       {/* KPI row */}

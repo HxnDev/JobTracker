@@ -2,7 +2,12 @@
 // toggle — parity with the web app's Applications view (edit form is phase 3).
 
 import type { Job } from '@jobtracker/shared';
-import { parseSheetDate, STATUS_OPTIONS } from '@jobtracker/shared';
+import {
+  buildJobFilterOptions,
+  filterJobs,
+  parseSheetDate,
+  STATUS_OPTIONS,
+} from '@jobtracker/shared';
 import { router } from 'expo-router';
 import { Eye, EyeOff, Plus, Search, X } from 'lucide-react-native';
 import { useMemo, useState } from 'react';
@@ -21,6 +26,7 @@ import { FilterChips } from '@/components/FilterChips';
 import { JobCard } from '@/components/JobCard';
 import { Screen } from '@/components/Screen';
 import { SummaryBar } from '@/components/SummaryBar';
+import { useJobFilters } from '@/context/JobFiltersContext';
 import { useJobs } from '@/hooks/useJobs';
 import { colors, fonts, radius, sp } from '@/lib/theme';
 
@@ -32,68 +38,39 @@ function sortByDateDesc(jobs: Job[]) {
   });
 }
 
-function monthKey(value: Job['dateApplied']) {
-  const date = parseSheetDate(value);
-  if (!date) return '';
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-}
-
 export default function Applications() {
   const insets = useSafeAreaInsets();
   const { data, isPending, isRefetching, error, refetch } = useJobs();
 
   const [query, setQuery] = useState('');
-  const [status, setStatus] = useState('');
-  const [month, setMonth] = useState('');
   const [showRejected, setShowRejected] = useState(true);
+  const { filters, setFilter } = useJobFilters();
 
   const jobs = data ?? [];
 
   const rejectedCount = useMemo(
-    () => jobs.filter((j) => j.status === 'Rejected').length,
-    [jobs]
+    () =>
+      filters.status && filters.status !== 'Rejected'
+        ? 0
+        : filterJobs(jobs, { ...filters, status: 'Rejected' }).length,
+    [filters, jobs]
   );
 
-  const monthOptions = useMemo(() => {
-    const uniqueMonths = new Set(
-      jobs.map((job) => monthKey(job.dateApplied)).filter(Boolean)
-    );
-    return [...uniqueMonths]
-      .sort((a, b) => b.localeCompare(a))
-      .map((value) => {
-        const [year, monthNumber] = value.split('-').map(Number);
-        return {
-          value,
-          label: new Date(year, monthNumber - 1, 1).toLocaleDateString('en-CH', {
-            month: 'long',
-            year: 'numeric',
-          }),
-        };
-      });
-  }, [jobs]);
+  const filterOptions = useMemo(() => buildJobFilterOptions(jobs), [jobs]);
 
   const visibleJobs = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    // Only hide rejected when the user isn't explicitly filtering for them.
-    const hideRejected = !showRejected && status !== 'Rejected';
-
-    const filtered = jobs.filter((job) => {
-      if (hideRejected && job.status === 'Rejected') return false;
-      if (status && job.status !== status) return false;
-      if (month && monthKey(job.dateApplied) !== month) return false;
-      if (q) {
-        const hay = `${job.jobTitle} ${job.company} ${job.location} ${job.jobId} ${job.rejectionReason}`.toLowerCase();
-        if (!hay.includes(q)) return false;
-      }
-      return true;
+    const filtered = filterJobs(jobs, {
+      ...filters,
+      query,
+      hideRejected: !showRejected,
     });
 
     return sortByDateDesc(filtered);
-  }, [jobs, query, status, month, showRejected]);
+  }, [filters, jobs, query, showRejected]);
 
   const header = (
     <View style={styles.headerBlock}>
-      <SummaryBar jobs={jobs} />
+      <SummaryBar jobs={visibleJobs} />
 
       <View style={styles.searchWrap}>
         <Search color={colors.textFaint} size={16} />
@@ -113,12 +90,28 @@ export default function Applications() {
         )}
       </View>
 
-      <FilterChips options={STATUS_OPTIONS} value={status} onChange={setStatus} />
       <FilterChips
-        options={monthOptions}
-        value={month}
-        onChange={setMonth}
+        options={STATUS_OPTIONS}
+        value={filters.status}
+        onChange={(value) => setFilter('status', value)}
+      />
+      <FilterChips
+        options={filterOptions.months}
+        value={filters.month}
+        onChange={(value) => setFilter('month', value)}
         allLabel="All months"
+      />
+      <FilterChips
+        options={filterOptions.locations}
+        value={filters.location}
+        onChange={(value) => setFilter('location', value)}
+        allLabel="All cities"
+      />
+      <FilterChips
+        options={filterOptions.jobSites}
+        value={filters.jobSite}
+        onChange={(value) => setFilter('jobSite', value)}
+        allLabel="All sites"
       />
 
       <View style={styles.countRow}>

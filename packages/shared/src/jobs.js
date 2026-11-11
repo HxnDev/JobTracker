@@ -1,5 +1,5 @@
 import { normalizeStatus, normalizeWorkMode } from './options.js';
-import { daysSince, toSheetDate } from './dates.js';
+import { daysSince, parseSheetDate, toSheetDate } from './dates.js';
 
 /** @typedef {import('./schema.js').Job} Job */
 
@@ -162,4 +162,63 @@ export function findDuplicateApplication(jobs, candidate) {
       return true;
     }) || null
   );
+}
+
+/** @param {Job['dateApplied']} value */
+export function jobMonthKey(value) {
+  const date = parseSheetDate(value);
+  if (!date) return '';
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+}
+
+/**
+ * Builds the values used by the shared status/month/city/site filters.
+ * @param {Job[]} jobs
+ */
+export function buildJobFilterOptions(jobs) {
+  const locations = [...new Set(jobs.map((job) => job.location).filter(Boolean))].sort(
+    (a, b) => a.localeCompare(b)
+  );
+  const jobSites = [...new Set(jobs.map((job) => job.jobSite).filter(Boolean))].sort(
+    (a, b) => a.localeCompare(b)
+  );
+  const months = [...new Set(jobs.map((job) => jobMonthKey(job.dateApplied)).filter(Boolean))]
+    .sort((a, b) => b.localeCompare(a))
+    .map((value) => {
+      const [year, month] = value.split('-').map(Number);
+      return {
+        value,
+        label: new Date(year, month - 1, 1).toLocaleDateString('en-CH', {
+          month: 'long',
+          year: 'numeric',
+        }),
+      };
+    });
+
+  return { locations, jobSites, months };
+}
+
+/**
+ * Applies the global application filters consistently across lists, KPIs, and charts.
+ * @param {Job[]} jobs
+ * @param {{query?: string, status?: string, month?: string, location?: string, jobSite?: string, hideRejected?: boolean}} filters
+ */
+export function filterJobs(jobs, filters = {}) {
+  const query = normalized(filters.query);
+  return jobs.filter((job) => {
+    if (filters.hideRejected && filters.status !== 'Rejected' && job.status === 'Rejected') {
+      return false;
+    }
+    if (filters.status && job.status !== filters.status) return false;
+    if (filters.month && jobMonthKey(job.dateApplied) !== filters.month) return false;
+    if (filters.location && job.location !== filters.location) return false;
+    if (filters.jobSite && job.jobSite !== filters.jobSite) return false;
+    if (query) {
+      const haystack = normalized(
+        `${job.jobTitle} ${job.company} ${job.location} ${job.jobId} ${job.rejectionReason}`
+      );
+      if (!haystack.includes(query)) return false;
+    }
+    return true;
+  });
 }

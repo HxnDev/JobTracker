@@ -14,7 +14,8 @@ Sheets API via browser OAuth.
 - **Browser-only OAuth.** Google Identity Services (token model) — no client secret,
   no refresh token, no backend.
 - **Real CRUD.** Add / edit applications, change status, open the job link.
-- **Search, filter & sort** by status, application month, city, date, and "days since".
+- **Search, filter & sort** by status, application month, city, site, date, and
+  "days since". These filters also recalculate every dashboard insight.
 - **Handles the messy sheet** — mixed date formats, the `Hybird` typo, and the
   hidden `=HYPERLINK()` job links are all parsed correctly.
 - **Never breaks your formulas.** The "Days Since Applied" formula column is never

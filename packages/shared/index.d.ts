@@ -75,6 +75,22 @@ export function buildJobSuggestions(
   defaults?: string[]
 ): string[];
 export function findDuplicateApplication(jobs: Job[], candidate: Job): Job | null;
+export interface JobFilterState {
+  query?: string;
+  status?: string;
+  month?: string;
+  location?: string;
+  jobSite?: string;
+  hideRejected?: boolean;
+}
+export interface JobFilterOptions {
+  locations: string[];
+  jobSites: string[];
+  months: Array<{ value: string; label: string }>;
+}
+export function jobMonthKey(value: Job['dateApplied']): string;
+export function buildJobFilterOptions(jobs: Job[]): JobFilterOptions;
+export function filterJobs(jobs: Job[], filters?: JobFilterState): Job[];
 
 // ---------- analytics ----------
 export interface CountEntry {

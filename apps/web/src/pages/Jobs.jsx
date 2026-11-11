@@ -4,16 +4,12 @@ import { SummaryBar } from '@/components/jobs/SummaryBar';
 import { JobFilters } from '@/components/jobs/JobFilters';
 import { JobTable } from '@/components/jobs/JobTable';
 import { Button } from '@/components/ui/button';
-import { parseSheetDate } from '@jobtracker/shared';
+import {
+  buildJobFilterOptions,
+  filterJobs,
+  parseSheetDate,
+} from '@jobtracker/shared';
 import { cn } from '@/lib/utils';
-
-const INITIAL_FILTERS = { status: '', month: '', location: '', jobSite: '' };
-
-function monthKey(value) {
-  const date = parseSheetDate(value);
-  if (!date) return '';
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-}
 
 function compare(a, b, key) {
   if (key === 'dateApplied') {
@@ -29,81 +25,49 @@ function compare(a, b, key) {
   });
 }
 
-export function Jobs({ jobs, loading, error, onEdit, onAdd, onRetry }) {
+export function Jobs({
+  jobs,
+  loading,
+  error,
+  onEdit,
+  onAdd,
+  onRetry,
+  filters,
+  setFilter,
+  onClearFilters,
+}) {
   const [query, setQuery] = useState('');
-  const [filters, setFilters] = useState(INITIAL_FILTERS);
   const [sort, setSort] = useState({ key: 'dateApplied', dir: 'desc' });
   const [showRejected, setShowRejected] = useState(true);
   const [viewMode, setViewMode] = useState('list');
 
-  const locations = useMemo(
-    () =>
-      [...new Set(jobs.map((j) => j.location).filter(Boolean))].sort((a, b) =>
-        a.localeCompare(b)
-      ),
+  const { locations, jobSites, months } = useMemo(
+    () => buildJobFilterOptions(jobs),
     [jobs]
   );
-  const jobSites = useMemo(
-    () =>
-      [...new Set(jobs.map((j) => j.jobSite).filter(Boolean))].sort((a, b) =>
-        a.localeCompare(b)
-      ),
-    [jobs]
-  );
-  const months = useMemo(() => {
-    const entries = new Map();
-    jobs.forEach((job) => {
-      const date = parseSheetDate(job.dateApplied);
-      if (!date) return;
-      const value = monthKey(date);
-      if (!entries.has(value)) {
-        entries.set(value, {
-          value,
-          label: date.toLocaleDateString('en-CH', {
-            month: 'long',
-            year: 'numeric',
-          }),
-        });
-      }
-    });
-    return [...entries.values()].sort((a, b) => b.value.localeCompare(a.value));
-  }, [jobs]);
 
   const rejectedCount = useMemo(
-    () => jobs.filter((j) => j.status === 'Rejected').length,
-    [jobs]
+    () =>
+      filters.status && filters.status !== 'Rejected'
+        ? 0
+        : filterJobs(jobs, { ...filters, status: 'Rejected' }).length,
+    [filters, jobs]
   );
 
   const visibleJobs = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    // Only hide rejected when the user isn't explicitly filtering for them.
-    const hideRejected = !showRejected && filters.status !== 'Rejected';
-
-    const filtered = jobs.filter((job) => {
-      if (hideRejected && job.status === 'Rejected') return false;
-      if (filters.status && job.status !== filters.status) return false;
-      if (filters.month && monthKey(job.dateApplied) !== filters.month) {
-        return false;
-      }
-      if (filters.location && job.location !== filters.location) return false;
-      if (filters.jobSite && job.jobSite !== filters.jobSite) return false;
-      if (q) {
-        const hay = `${job.jobTitle} ${job.company} ${job.location} ${job.jobId} ${job.rejectionReason || ''}`.toLowerCase();
-        if (!hay.includes(q)) return false;
-      }
-      return true;
+    const filtered = filterJobs(jobs, {
+      ...filters,
+      query,
+      hideRejected: !showRejected,
     });
 
     const sorted = [...filtered].sort((a, b) => compare(a, b, sort.key));
     return sort.dir === 'asc' ? sorted : sorted.reverse();
   }, [jobs, query, filters, sort, showRejected]);
 
-  const setFilter = (key, value) =>
-    setFilters((prev) => ({ ...prev, [key]: value }));
-
   const clearFilters = () => {
     setQuery('');
-    setFilters(INITIAL_FILTERS);
+    onClearFilters();
   };
 
   const handleSort = (key) =>
@@ -119,7 +83,7 @@ export function Jobs({ jobs, loading, error, onEdit, onAdd, onRetry }) {
         <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">Applications</h2>
         <p className="mt-1 text-sm text-muted-foreground">Track, manage and never miss an opportunity.</p>
       </div>
-      <SummaryBar jobs={jobs} />
+      <SummaryBar jobs={visibleJobs} />
 
       <div className="space-y-4">
         <JobFilters

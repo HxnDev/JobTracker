@@ -21,6 +21,17 @@ export function AppShell({ onSignOut }) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [exportOpen, setExportOpen] = useState(false);
+  const [filters, setFilters] = useState({
+    status: '',
+    month: '',
+    location: '',
+    jobSite: '',
+  });
+
+  const setFilter = (key, value) =>
+    setFilters((current) => ({ ...current, [key]: value }));
+  const clearFilters = () =>
+    setFilters({ status: '', month: '', location: '', jobSite: '' });
 
   const openAdd = () => {
     setEditing({
@@ -94,7 +105,12 @@ export function AppShell({ onSignOut }) {
               </div>
             }
           >
-            <Dashboard jobs={jobs} />
+            <Dashboard
+              jobs={jobs}
+              filters={filters}
+              setFilter={setFilter}
+              onClearFilters={clearFilters}
+            />
           </Suspense>
         ) : (
           <Jobs
@@ -104,6 +120,9 @@ export function AppShell({ onSignOut }) {
             onEdit={openEdit}
             onAdd={openAdd}
             onRetry={handleRefresh}
+            filters={filters}
+            setFilter={setFilter}
+            onClearFilters={clearFilters}
           />
         )}
       </main>

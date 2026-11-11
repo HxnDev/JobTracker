@@ -2,7 +2,10 @@
 // computeAnalytics and rendered with lightweight native charts.
 
 import {
+  buildJobFilterOptions,
   computeAnalytics,
+  filterJobs,
+  STATUS_OPTIONS,
   STATUS_COLORS,
 } from '@jobtracker/shared';
 import {
@@ -21,6 +24,7 @@ import type { ComponentType } from 'react';
 import { useMemo } from 'react';
 import {
   ActivityIndicator,
+  Pressable,
   RefreshControl,
   ScrollView,
   StyleSheet,
@@ -29,7 +33,9 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ChartCard, Donut, HBars, Legend, VBars } from '@/components/charts';
+import { FilterChips } from '@/components/FilterChips';
 import { Screen } from '@/components/Screen';
+import { useJobFilters } from '@/context/JobFiltersContext';
 import { useJobs } from '@/hooks/useJobs';
 import { colors, fonts, radius, sp } from '@/lib/theme';
 
@@ -95,8 +101,12 @@ export default function Stats() {
   const insets = useSafeAreaInsets();
   const { data, isPending, isRefetching, refetch } = useJobs();
   const jobs = data ?? [];
+  const { filters, setFilter, clearFilters } = useJobFilters();
 
-  const a = useMemo(() => computeAnalytics(jobs), [jobs]);
+  const filterOptions = useMemo(() => buildJobFilterOptions(jobs), [jobs]);
+  const filteredJobs = useMemo(() => filterJobs(jobs, filters), [filters, jobs]);
+  const a = useMemo(() => computeAnalytics(filteredJobs), [filteredJobs]);
+  const hasActiveFilters = Object.values(filters).some(Boolean);
 
   const statusSegments = a.byStatus.map((s) => ({
     ...s,
@@ -106,7 +116,9 @@ export default function Stats() {
     <Screen>
       <View style={[styles.titleRow, { paddingTop: insets.top + sp(4) }]}>
         <Text style={styles.title}>Dashboard</Text>
-        <Text style={styles.titleSubtitle}>Your application progress at a glance.</Text>
+        <Text style={styles.titleSubtitle}>
+          {a.total} of {jobs.length} applications in the current view.
+        </Text>
       </View>
 
       {isPending ? (
@@ -135,6 +147,41 @@ export default function Stats() {
             />
           }
         >
+          <View style={styles.filterPanel}>
+            <View style={styles.filterHeader}>
+              <Text style={styles.filterTitle}>Dashboard filters</Text>
+              {hasActiveFilters ? (
+                <Pressable onPress={clearFilters} hitSlop={8}>
+                  <Text style={styles.clearFilters}>Clear all</Text>
+                </Pressable>
+              ) : null}
+            </View>
+            <FilterChips
+              options={STATUS_OPTIONS}
+              value={filters.status}
+              onChange={(value) => setFilter('status', value)}
+              allLabel="All status"
+            />
+            <FilterChips
+              options={filterOptions.months}
+              value={filters.month}
+              onChange={(value) => setFilter('month', value)}
+              allLabel="All months"
+            />
+            <FilterChips
+              options={filterOptions.locations}
+              value={filters.location}
+              onChange={(value) => setFilter('location', value)}
+              allLabel="All cities"
+            />
+            <FilterChips
+              options={filterOptions.jobSites}
+              value={filters.jobSite}
+              onChange={(value) => setFilter('jobSite', value)}
+              allLabel="All sites"
+            />
+          </View>
+
           <View style={styles.kpiGrid}>
             <Kpi
               icon={Briefcase}
@@ -297,6 +344,31 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: sp(3),
+  },
+  filterPanel: {
+    gap: sp(2.5),
+    marginHorizontal: -sp(4),
+    paddingVertical: sp(3),
+    backgroundColor: colors.card,
+    borderColor: colors.cardBorder,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  filterHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: sp(4),
+  },
+  filterTitle: {
+    color: colors.text,
+    fontFamily: fonts.semibold,
+    fontSize: 12.5,
+  },
+  clearFilters: {
+    color: colors.primary,
+    fontFamily: fonts.medium,
+    fontSize: 12,
   },
   kpi: {
     flexBasis: '47%',
